@@ -7,7 +7,8 @@ N = 100
 t_seq = [(i-1) * 2 * pi / N for i in 1:100]
 
 plot(a[:, 1], a[:, 2], seriestype = :scatter)  
-
+# The 3 points connected path is used to calculate DFT and draw path using epicycloid.
+# 3 points are too few.. but whatever... 
 
 K = 3
 # ^ highest frequency
@@ -29,7 +30,7 @@ for k in 1:K
 end
 	
 
-plot( real.(ec), imag.(ec) , seriestype = :scatter)
+plot!( real.(ec), imag.(ec) , seriestype = :scatter)
 
 # Apparantely I failed based on this plot... 
 
