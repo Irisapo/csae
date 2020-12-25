@@ -10,6 +10,7 @@ plot(a[:, 1], a[:, 2], seriestype = :scatter)
 
 
 K = 3
+# ^ highest frequency
 
 x_k = []
 
@@ -21,7 +22,7 @@ for k in 1:K
 	Base.push!(x_k, res)
 end
 
-# Epicycloid 
+# Compute end points of epicycloid 
 ec = [0 for i in 1:100] 
 for k in 1:K
 	ec += x_k[k] * exp.( t_seq * im * k )
@@ -29,5 +30,7 @@ end
 	
 
 plot( real.(ec), imag.(ec) , seriestype = :scatter)
+
+# Apparantely I failed based on this plot... 
 
 
