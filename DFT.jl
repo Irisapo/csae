@@ -1,6 +1,7 @@
 using Plots
 
 a = [1 -1; 0 2; -1 -1]
+nP = 3
 
 # T sequence
 N = 100 
@@ -18,7 +19,7 @@ x_k = []
 for k in 1:K
 	res = 0
 	for i in 1:3
-		res += (a[i, 1] + a[i, 2] *im) * exp( - k * 2*pi / 3 * (i-1))
+		res += (a[i, 1] + a[i, 2] *im) * exp( - k * 2*pi / nP * (i-1) *im )
 	end
 	Base.push!(x_k, res)
 end
@@ -29,6 +30,7 @@ for k in 1:K
 	ec += x_k[k] * exp.( t_seq * im * k )
 end
 	
+ec /= nP
 
 plot!( real.(ec), imag.(ec) , seriestype = :scatter)
 
