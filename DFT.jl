@@ -34,6 +34,7 @@ ec /= nP
 
 plot!( real.(ec), imag.(ec) , seriestype = :scatter)
 
-# Apparantely I failed based on this plot... 
 
+# When highest frequency is set to be 3 (same as #points), the points are on the path
+# But when highest frequency is > 3 (i.g. as 5), I get weird shape.. kind of make sense
 
