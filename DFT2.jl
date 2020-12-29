@@ -1,9 +1,10 @@
 using Plots
 
+a = [1 -1; 0 2; -1 -1]
 a = [ 2 0;  2  1;  2  2;  2  3;  1  3;  1  2;  1  1; 
        0 1; -1  1; -1  2; -1  3; -2  3; -2  2; -2  1;
       -2 0; -2 -1; -2 -2; -2 -3; -1 -3; -1 -2; -1 -1;
-      0 -1;  1 -1;  1 -2;  1 -3;  2 -3;  2 -2;  2 -1]
+      0 -1;  1 -1;  1 -2;  1 -3;  2 -1;  2 -2;  2 -3]
 
 nP = size(a)[1]
 
@@ -30,17 +31,21 @@ for k in 1:K
 	res /= nP
 	ser /= nP
 	Base.push!(x_k, res)
-	Base.prepend!(x_k, ser)
+	#Base.prepend!(x_k, ser)
 	
 end
 
 # Compute end points of epicycloid 
 ec = [0 for i in 1:N] 
-for k in 1:Int(2*K+1)
-	ec += x_k[k] * exp.( t_seq * im * (k-K-1) )
+#for k in 1:Int(2*K+1)
+for k in 1:(K+1)
+	#ec += x_k[k] * exp.( t_seq * im * (k-K-1) )
+	ec += x_k[k] * exp.( t_seq * im * (k) )
 end
 	
 
 plot!( real.(ec), imag.(ec) , seriestype = :scatter)
 
 
+# The center of the points matters.
+# As we need to use this to choose what frequencies should be included in the DFT
