@@ -9,38 +9,38 @@ a = [ 2 0;  2  1;  2  2;  2  3;  1  3;  1  2;  1  1;
 nP = size(a)[1]
 
 # T sequence
-N = nP 
+N = nP + 100 
 t_seq = [(i-1) * 2 * pi / N for i in 1:N]
 
 plot(a[:, 1], a[:, 2], seriestype = :scatter)  
 
-K = nP
+K = 10
 # ^ highest frequency
 
-x_k = []
+x_k = [ sum(a[:, 1] + a[:, 2] *im)/nP ]
 
 for k in 1:K
 	res = 0
+	ser = 0
 	for i in 1:nP
-		res += (a[i, 1] + a[i, 2] *im) * exp( - k * 2*pi / nP * (i-1) *im )
+		res += (a[i, 1] + a[i, 2] *im) * exp( - k * 2*pi / nP * (i) *im )
+		ser += (a[i, 1] + a[i, 2] *im) * exp(  k * 2*pi / nP * (i) *im )
 	end
+	# normalize x_k
+	res /= nP
+	ser /= nP
 	Base.push!(x_k, res)
+	Base.prepend!(x_k, ser)
+	
 end
 
 # Compute end points of epicycloid 
 ec = [0 for i in 1:N] 
-for k in 1:K
-	ec += x_k[k] * exp.( t_seq * im * k )
+for k in 1:Int(2*K+1)
+	ec += x_k[k] * exp.( t_seq * im * (k-K-1) )
 end
 	
-ec /= nP
 
 plot!( real.(ec), imag.(ec) , seriestype = :scatter)
 
-
-# Why number of points have to be the same as the number of frequencies??
-## When I set N > nP
-## I get weird shapes
-## But when I set N = nP
-## I can get all the exact points from the original input 
 
