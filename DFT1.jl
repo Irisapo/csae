@@ -8,7 +8,8 @@ t_seq = 2 * pi .* [ (i-1)/N for i in 1:N]
 a = [ 2 0;  2  1;  2  2;  2  3;  1  3;  1  2;  1  1; 
        0 1; -1  1; -1  2; -1  3; -2  3; -2  2; -2  1;
       -2 0; -2 -1; -2 -2; -2 -3; -1 -3; -1 -2; -1 -1;
-      0 -1;  1 -1;  1 -2;  1 -3;  2 -1;  2 -2;  2 -3]
+      0 -1;  1 -1;  1 -2;  1 -3;  2 -1;  2 -2]
+#;2 -3]
 #a = [1 -1; 0 2; -1 -1]
 
 # 2 dimention Fourier Transform to draw
@@ -26,12 +27,12 @@ y_k = []
 ## DFT 
 for k in 1:K
 	res = sum( inx .* exp.( - (0:nP-1)./nP .* (2*pi) .* (k-1) .* im ) ) 
-	push!(x_k, res/K)
+	push!(x_k, res/nP)
 end
 
 ## inverse DFT
 zx_t = [0 for i in 1:N]
-for k in 1:K
+for k in 1:K 
 	zx_t += x_k[k] * exp.( t_seq * im * (k-1) )   
 end
 
