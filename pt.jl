@@ -6,8 +6,12 @@ include(ft_file)
 
 using Plots
 
-function generate_plot(str="ysy", gif_name="test.gif"; tN=500, K=5, sizep=(630, 210), color=:phase, showaxis=false, fps=60,
-	axis=nothing)
+function generate_plot(str="ysy", gif_name="test.gif"; tN=500, K=5, 
+	sizep=(630, 210), fps=60,
+	color=:phase, 
+	axis=nothing,
+	showaxis=false,
+	markerstrokewidth=0)
 
 	ls = length(str) 
 	x_l = 4
@@ -33,13 +37,14 @@ function generate_plot(str="ysy", gif_name="test.gif"; tN=500, K=5, sizep=(630, 
 		# This one shows multiple(x)->one(y) match
 		pl = plot( start_x[1:2 , :], r[1:2, 2] .- 10,
 			xlim=xlim, ylim=ylim, 
-			marker_z = 1:((2+tN)*ls), 
+			marker_z = 1:(2+tN), 
+			markerstrokewidth=markerstrokewidth,
 			color=color, 
-			showaxis = showaxis, 
 			seriestype=:scatter,
 			legend = false,
 			size = sizep, 
-			axis=axis 
+			axis=axis,
+			showaxis=showaxis 
 		)
 
 		anim = Animation()
@@ -51,20 +56,23 @@ function generate_plot(str="ysy", gif_name="test.gif"; tN=500, K=5, sizep=(630, 
 		end
 	elseif ls == 1 
 		## For single letter
-		#x_n_y = draw_path(y[:, 1], y[:, 2], K=4, tN=tN)
-		#x_n_e = draw_path(e[:, 1], e[:, 2], K=4, tN=tN)
-		#x_n = x_n_y
-		#pl = plot( y[:, 1], y[:, 2],  marker_z = 1:(size(r)[1] + size(x_n)[1]), xlim=(-5, 5), ylim=(-5, 5), 
-		#	marker_z = (+),
-		#	color=:darkrainbow,
-		#	seriestype=:scatter,
-		#	legend = false)
-		#anim = Animation()
-		#
-		#for i=1:tN
-		#	push!(pl, real(x_n[i]), imag(x_n[i]))
-		#	frame(anim)
-		#end
+		op = eval(Symbol(str))
+		x_n = draw_path(op[:, 1], op[:, 2], K=K, tN=tN)
+		pl = plot( op[:, 1],op[:, 2],  marker_z = 1:(size(op)[1] + tN), xlim=(-5, 5), ylim=(-5, 5), 
+            markerstrokewidth=markerstrokewidth,
+            color=color,
+            seriestype=:scatter,
+            legend = false,
+            size = sizep,
+            axis=axis,
+			showaxis=showaxis 
+        )
+
+		anim = Animation()
+		for i=1:tN
+			push!(pl, real(x_n[i]), imag(x_n[i]))
+			frame(anim)
+		end
 	end
 
 	gif(anim, gif_name, fps=fps) 
