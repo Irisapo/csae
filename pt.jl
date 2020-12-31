@@ -65,7 +65,7 @@ function generate_plot(str="ysy", gif_name="test.gif"; tN=500, K=5,
             legend = false,
             size = sizep,
             axis=axis,
-			showaxis=showaxis 
+            showaxis=showaxis 
         )
 
 		anim = Animation()
