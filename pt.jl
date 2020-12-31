@@ -7,6 +7,7 @@ include(ft_file)
 using Plots
 
 function generate_plot(str="ysy", gif_name="test.gif"; tN=500, K=5, 
+	x_l = 4,
 	sizep=(630, 210), fps=60,
 	color=:phase, 
 	axis=nothing,
@@ -14,7 +15,6 @@ function generate_plot(str="ysy", gif_name="test.gif"; tN=500, K=5,
 	markerstrokewidth=0)
 
 	ls = length(str) 
-	x_l = 4
 
 	if ls>1
 		cstr = split(str, "")
@@ -28,7 +28,7 @@ function generate_plot(str="ysy", gif_name="test.gif"; tN=500, K=5,
 		end
 			
 		# Set plot attributes
-		xlim = (-x_l, x_l + 2*x_l*(ls-1))
+		xlim = (-4, 4 + 2*x_l*(ls-1))
 		ylim = (-5, 5)
 
 		start_x = repeat(r[:, 1], 1, ls) .+ transpose( 2*x_l * (0:(ls-1)) )
