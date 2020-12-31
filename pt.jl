@@ -6,7 +6,7 @@ include(ft_file)
 
 using Plots
 
-str = "happynewyear"
+str = "ysy"
 cstr = split(str, "")
 
 ls = length(str) 
