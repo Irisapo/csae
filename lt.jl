@@ -82,9 +82,7 @@ function draw_path(inx, iny; tN=1000, K=10)
 
 
 	nP = length(inx)	
-	if (nP != length(iny) )
-		ArgumentError("Length of inx and lenght of iny should be the same")
-	end
+	@assert nP==length(iny) "Length of inx and lenght of iny should be the same"
 
 	# T sequence
 	t_seq = (0:(tN-1)) / tN * 2 * pi
@@ -112,12 +110,12 @@ end
 #=
 png_path = "~/Desktop/y.png"
 =#
-res = extract_points(png_path, 0.2)
-inx_s = res[1]
-iny_s = res[2]
-x_n = draw_path(inx_s, iny_s, K=50)
-plot( inx_s, iny_s, seriestype=:scatter)
-plot!( real.(x_n), imag.(x_n), seriestype=:scatter)
+#res = extract_points(png_path, 0.2)
+#inx_s = res[1]
+#iny_s = res[2]
+#x_n = draw_path(inx_s, iny_s, K=50)
+#plot( inx_s, iny_s, seriestype=:scatter)
+#plot!( real.(x_n), imag.(x_n), seriestype=:scatter)
 
 # Apparently I failed at finding the shortest path from a graph ...
 
