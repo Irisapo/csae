@@ -54,19 +54,20 @@ function generate_plot(str="ysy", gif_name="test.gif"; tN=500, K=5,
 			push!(pl, p_x, p_y) 
 			frame(anim) 
 		end
+
 	elseif ls == 1 
 		## For single letter
 		op = eval(Symbol(str))
 		x_n = draw_path(op[:, 1], op[:, 2], K=K, tN=tN)
 		pl = plot( op[:, 1],op[:, 2],  marker_z = 1:(size(op)[1] + tN), xlim=(-5, 5), ylim=(-5, 5), 
-            markerstrokewidth=markerstrokewidth,
-            color=color,
-            seriestype=:scatter,
-            legend = false,
-            size = sizep,
-            axis=axis,
-            showaxis=showaxis 
-        )
+			markerstrokewidth=markerstrokewidth,
+			color=color,
+			seriestype=:scatter,
+			legend = false,
+			size = sizep,
+			axis=axis,
+			showaxis=showaxis 
+		)
 
 		anim = Animation()
 		for i=1:tN
