@@ -1,5 +1,5 @@
-letters_file = "/Users/syyang/Documents/git_syy/csae/letters.jl"
-ft_file = "/Users/syyang/Documents/git_syy/csae/lt.jl"
+letters_file = "letters.jl"
+ft_file = "lt.jl"
 
 include(letters_file)
 include(ft_file)
