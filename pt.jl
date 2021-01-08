@@ -1,5 +1,7 @@
-letters_file = "letters.jl"
-ft_file = "lt.jl"
+dir_name = dirname(@__FILE__)
+
+letters_file = joinpath(dir_name, "letters.jl")
+ft_file = joinpath(dir_name, "lt.jl")
 
 include(letters_file)
 include(ft_file)

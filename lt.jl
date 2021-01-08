@@ -66,8 +66,10 @@ function extract_points(png_path; threshold=0.1, theta=0.99, seed=1111)
 	iny_s .-= Int(floor(mean(iny_s)))
 	#plot(inx_s, iny_s, seriestype=:scatter)
 	#plot!(iny_s, -inx_s, seriestype=:scatter) # rotate 90 degree counterclockwise
-
-	# Reorder the points 
+    #= This is not correct on ordering the points.
+		angle with x-axis cannot promise the right order.
+	#=
+	# Reorder the points (Wrong)
 	theta = [ atan(y,x) for (x,y) in zip(inx_s, iny_s) ]
 	ind_sort = sortperm(theta)
 	inx_s = inx_s[ind_sort]
@@ -108,14 +110,13 @@ end
 
 
 #=
-png_path = "~/Desktop/y.png"
+res = extract_points(png_path, 0.2)
+inx_s = res[1]
+iny_s = res[2]
+x_n = draw_path(inx_s, iny_s, K=50)
+plot( inx_s, iny_s, seriestype=:scatter)
+plot!( real.(x_n), imag.(x_n), seriestype=:scatter)
 =#
-#res = extract_points(png_path, 0.2)
-#inx_s = res[1]
-#iny_s = res[2]
-#x_n = draw_path(inx_s, iny_s, K=50)
-#plot( inx_s, iny_s, seriestype=:scatter)
-#plot!( real.(x_n), imag.(x_n), seriestype=:scatter)
 
 # Apparently I failed at finding the shortest path from a graph ...
 
