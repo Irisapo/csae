@@ -68,7 +68,7 @@ function extract_points(png_path; threshold=0.1, theta=0.99, seed=1111)
 	#plot!(iny_s, -inx_s, seriestype=:scatter) # rotate 90 degree counterclockwise
     #= This is not correct on ordering the points.
 		angle with x-axis cannot promise the right order.
-	#=
+	=#
 	# Reorder the points (Wrong)
 	theta = [ atan(y,x) for (x,y) in zip(inx_s, iny_s) ]
 	ind_sort = sortperm(theta)
