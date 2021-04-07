@@ -7,8 +7,9 @@ function fun_nbeta(n::Int64, lb::Float64, ub::Float64)
 	# Range of this f_n(x) is [0,1]
 	map(x -> n^2*x*(1-x^2)^n, LinRange(lb,ub, 100))
 	#=  When n > 10000
-		equally spaced x \in [0,1] is not able to capture the property of the function f_n(x)
-		Because lim(x->0) f_n(x) -> 1
+		equally 100 spaced x \in [0,1] is not able to capture the property of the function f_n(x)
+		Because n -> inf, f_n(x) = 0 for x \in (0, 1], and f_n(x=0)=0;
+		but very close to 0, f_n(x) supar large
 	=#
 end
 
