@@ -46,7 +46,7 @@ arc_list=Dict{Int, Arc}()
 
 # Create a new area to the area list
 if true #Fill this part      *=   or  **  or   =*   or   +*
-        #                 3  *-   3   =-  3    *-   4    =-
+        #                 3  *-   3   =-  3?   *-   4    =-
 	arc_count =+1
 	arc_list[arc_count] = Arc([[c_row,c_colum]], 1, nothing, nothing)
 	area_count += 1
@@ -61,15 +61,15 @@ end
 #end -> elseif
 
 # Create a new arc 
-if true #TODO-fill this      *=   or  *-   
-        #                 3  --   3   =-
+if true #TODO-fill this      -=   or  -*   
+        #                 3  **   3   =*
 	#TODO
 end 
 #end -> elseif
 
 # Add vertex 
 if true #TODO-fill this      --   or  --   or  -*   or  *-
-        #                    2  *-   2   -*   2   --   2   --
+     #                    2  *-   2   -*   2   --   2   --
 	#TODO
 end
  
