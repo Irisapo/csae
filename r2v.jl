@@ -46,13 +46,13 @@ arc_list=Dict{Int, Arc}()
 
 # Create a new area to the area list
 if true #Fill this part      *=   or  **  or   =*   or   +*
-		#                 3  *-   3   =-  3    *-   4    =-
+        #                 3  *-   3   =-  3    *-   4    =-
 	arc_count =+1
 	arc_list[arc_count] = Arc([[c_row,c_colum]], 1, nothing, nothing)
 	area_count += 1
 	area_list[area_count]=Area( :color_TODO, [arc_list[arc_count]] )
 elseif true # File this part     -*
-			#				  2  *-
+            #                 2  *-
 	# rige-form creates 2 arms and link them to each other
 	arc_list[arc_count=+1] = Arc([[c_row,c_colum]], nothing, nothing, arc_count+1)
 	arc_list[arc_count=+1] = Arc([[c_row,c_colum]], nothing, nothing, arc_count-1)
@@ -62,14 +62,14 @@ end
 
 # Create a new arc 
 if true #TODO-fill this      *=   or  *-   
-		#				  3  --   3   =-
+        #                 3  --   3   =-
 	#TODO
 end 
 #end -> elseif
 
 # Add vertex 
 if true #TODO-fill this      --   or  --   or  -*   or  *-
-	    #				  2  *-   2   -*   2   --   2   --
+	    #                    2  *-   2   -*   2   --   2   --
 	#TODO
 end
  
