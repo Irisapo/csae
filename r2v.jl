@@ -69,7 +69,7 @@ end
 
 # Add vertex 
 if true #TODO-fill this      --   or  --   or  -*   or  *-
-	    #                    2  *-   2   -*   2   --   2   --
+        #                    2  *-   2   -*   2   --   2   --
 	#TODO
 end
  
