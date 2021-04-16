@@ -5,20 +5,33 @@ using FileIO, Images
 # load image
 img=load("polygon.png")
 
-####################
-# Special Cases 
-###################
+########################################
+# Relationships among direcvtions 
+########################################
 
 # 2x2 pixels index order:
 # 1,2
 # 3,4
 
+struct Dir
+    dir::Array{Int8, 1}
+    next::Array{Symbol}
+
+    Dir(dir) = error("Need to provide Symbols of next possible directions.")
+    Dir(dir, next) = new(dir, next)
+end
+
+DIR1 = Dir([3, 4, 2], [:DIR2, :DIR3])
+DIR2 = Dir([1, 3, 4], [:DIR1, :DIR4])
+DIR3 = Dir([4, 2, 1], [:DIR1, :DIR4])
+DIR4 = Dir([2, 1, 3], [:DIR2, :DIR3])
+
+
 # events that will be recorded 
 
-##################
-# Special Cases 
-###################
-
+########################################
+# Relationships among direcvtions 
+########################################
 
 
 struct Arc
