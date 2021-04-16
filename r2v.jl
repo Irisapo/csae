@@ -41,6 +41,7 @@ struct Arc
 	start::Union{Int, Nothing} # index of the vetex (as start node)
 	dne::Union{Int, Nothing}  # end node's index
 	linkArc::Union{Nothing, Arc}
+	color::UnionAll  # I doubt this is the best way to find next vertex
 end
 
 
