@@ -10,8 +10,8 @@ img=load("polygon.png")
 ########################################
 
 # 2x2 pixels index order:
-# 1,2
-# 3,4
+# 1,3
+# 2,4
 
 struct Dir
     dir::Array{Int8, 1}
@@ -21,10 +21,10 @@ struct Dir
     Dir(dir, next) = new(dir, next)
 end
 
-DIR1 = Dir([3, 4, 2], [:DIR2, :DIR3])
-DIR2 = Dir([1, 3, 4], [:DIR1, :DIR4])
-DIR3 = Dir([4, 2, 1], [:DIR1, :DIR4])
-DIR4 = Dir([2, 1, 3], [:DIR2, :DIR3])
+DIR1 = Dir([2, 4, 3], [:DIR2, :DIR3])
+DIR2 = Dir([4, 3, 1], [:DIR1, :DIR4])
+DIR3 = Dir([1, 2, 4], [:DIR1, :DIR4])
+DIR4 = Dir([3, 1, 2], [:DIR2, :DIR3])
 
 
 # events that will be recorded 
