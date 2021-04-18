@@ -29,6 +29,11 @@ DIR4 = Dir([3, 1, 2], [:DIR2, :DIR3])
 
 # events that will be recorded 
 
+
+# States
+# Border
+# Nonborder
+
 ########################################
 # Relationships among direcvtions 
 ########################################
