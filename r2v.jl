@@ -39,20 +39,31 @@ DIR4 = Dir([3, 1, 2], [:DIR2, :DIR3])
 ########################################
 
 
-struct Arc
-	# Only 1d-array can be appended, so use array-of-array to store vertex coordinates
-	# each vertex is an Array{Int64, 1}
+mutable struct Arc
+	#=
+    Only 1d-array can be appended, so use array-of-array to store vertex coordinates 
+    each Vertex is an Array{Int64, 1}
+    Node info is saved the same as Vertex, 
+    but Node is not in the `vertices` to indicates its different feature as start/end point`
+    =# 
+
 	vertices::Array{Array{Int64,1}}
-	start::Union{Int, Nothing} # index of the vetex (as start node)
-	dne::Union{Int, Nothing}  # end node's index
+
+	start::Union{Array{Int64, 1}, Nothing} # start Node (represented by its position coordinates). 
+	dne::Union{Array{Int64, 1}, Nothing}  # end Node's coordinates if any
+
 	linkArc::Union{Nothing, Arc}
-	color::UnionAll  # I doubt this is the best way to find next vertex
+
+	#color::UnionAll  # color + end/start position coordinates to find next vertex
+    # Don't think color is necessary...
 end
 
 
-struct Area 
+mutable struct Area 
 	color::UnionAll
-	arm::Union{Array{Arc}, Nothing}
+	arm::Array{Arc}
+
+    
 end
 
 
