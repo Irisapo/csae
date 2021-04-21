@@ -57,13 +57,13 @@ mutable struct Arc
     but Node is not in the `vertices` to indicates its different feature as start/end point`
     =# 
 
-	vertices::Array{Array{Int64,1}}
+    vertices::Array{Array{Int64,1}}
 
-	start::Union{Array{Int64, 1}, Nothing} # start Node (represented by its position coordinates). 
-	dne::Union{Array{Int64, 1}, Nothing}  # end Node's coordinates if any
+    start::Union{Array{Int64, 1}, Nothing} # start Node (represented by its position coordinates). 
+    dne::Union{Array{Int64, 1}, Nothing}  # end Node's coordinates if any
 
-	linkArc::Union{Nothing, Arc}
-    # Need to change how linkArc is stored!!!!
+    linkArc::Union{Nothing, Arc}
+    # TODO:Need to change how linkArc is stored!!!!
 
     currentDir::Symbol
 
@@ -106,7 +106,7 @@ elseif flag2 && flag3
         end
 
         # check with "down" dir at [c_row-1, c_column] for connection
-        if arc_list[[c_row-1, c_column]].currentDir = :DirD || arc_list[[c_row-1, c_column]].currentDir = :DirRD
+        if arc_list[[c_row-1, c_column]].currentDir =+ :DirD || arc_list[[c_row-1, c_column]].currentDir == :DirRD
             #
         end
             
