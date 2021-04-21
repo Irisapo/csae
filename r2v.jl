@@ -14,17 +14,27 @@ img=load("polygon.png")
 # 2,4
 
 struct Dir
-    dir::Array{Int8, 1}
+    dir::Union{Array{Int8, 1}, String}
     next::Array{Symbol}
 
     Dir(dir) = error("Need to provide Symbols of next possible directions.")
     Dir(dir, next) = new(dir, next)
 end
 
-DIR1 = Dir([2, 4, 3], [:DIR2, :DIR3])
-DIR2 = Dir([4, 3, 1], [:DIR1, :DIR4])
-DIR3 = Dir([1, 2, 4], [:DIR1, :DIR4])
-DIR4 = Dir([3, 1, 2], [:DIR2, :DIR3])
+#
+#DIR1 = Dir([2, 4, 3], [:DIR2, :DIR3])
+#DIR2 = Dir([4, 3, 1], [:DIR1, :DIR4])
+#DIR3 = Dir([1, 2, 4], [:DIR1, :DIR4])
+#DIR4 = Dir([3, 1, 2], [:DIR2, :DIR3])
+#
+
+
+DirR = Dir("right", [:DirRD, :DirRU])
+DirD = Dir("down", [:DirDR, :DirD])
+DirDR = Dir("right", [:DirRU, :DirRD, :DirR])
+DirRU = Dir("up", [:END])
+DirRD = Dir("down", [:DirDR])
+
 
 
 # events that will be recorded 
@@ -53,6 +63,9 @@ mutable struct Arc
 	dne::Union{Array{Int64, 1}, Nothing}  # end Node's coordinates if any
 
 	linkArc::Union{Nothing, Arc}
+    # Need to change how linkArc is stored!!!!
+
+    currentDir::Symbol
 
 	#color::UnionAll  # color + end/start position coordinates to find next vertex
     # Don't think color is necessary...
@@ -71,8 +84,61 @@ area_count=0
 area_list=Dic{Int, Area}()
 
 arc_count=0
-arc_list=Dict{Int, Arc}()
+arc_list=Dict{Array{Int64, 1}, Arc}()
+# ^ Use current position of the Arc dangle point as Dictiontay key
 
+
+# Given a 2x2 pixel block `pb`, its position is [c_row, c_colum]
+flag2 = pb[4] == pb[2]; flag3 = pb[4] == pb[3]
+if !flag2 && !flag3
+    # create node and create 2 arcs,
+    # create a new area
+elseif flag2 && flag3
+    if  pb[1] != pb[2]
+        #   -
+        #  --
+        if arc_list[[c_row, c_colum-1]].currentDir == :DirR || arc_list[[c_row, c_colum-1]].currentDir == :DirDR
+            push!(arc_list[[c_row, c_colum-1]].vertices, [c_row, c_row])
+            arc_list[[c_row, c_colum-1]].currentDir = :DirRU
+
+            arc_list[[c_row, c_colum]] = arc_list[[c_row, c_colum-1]]
+            pop!(arc_list, [c_row, c_colum-1])
+        end
+
+        # check with "down" dir at [c_row-1, c_column] for connection
+        if arc_list[[c_row-1, c_column]].currentDir = :DirD || arc_list[[c_row-1, c_column]].currentDir = :DirRD
+            #
+        end
+            
+    end
+elseif flag2 && !flag3
+    if  pb[1] == pb[3]
+        #   --
+        #   **  
+        arc_list[[c_row, c_colum]] = arc_list[[c_row, c_colum-1]]
+        pop!(arc_list, [c_row, c_colum-1])
+    elseif pb[1] == pb[2]
+        #   -
+        #   --
+    else
+        #   #*
+        #   --
+    end
+elseif !flag2 && flag3
+    if  pb[1] == pb[2]
+        #   -*
+        #   -* 
+        arc_list[[c_row, c_colum]] =  arc_list[[c_row-1, c_colum]]
+        pop!(arc_list, [c_row-1, c_colum])
+    elseif pb[1] == pb[3]
+        #   --
+        #    -
+    else
+        #   #-
+        #   *-
+    end
+
+end
 
 # Create a new area to the area list
 if true #Fill this part      *=   or  **  or   =*   or   +*
