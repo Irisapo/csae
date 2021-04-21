@@ -85,7 +85,8 @@ area_list=Dic{Int, Area}()
 
 arc_count=0
 arc_list=Dict{Array{Int64, 1}, Arc}()
-# ^ Use current position of the Arc dangle point as Dictiontay key
+# ^ Use current position of the Arc dangle point as Dictionary key
+# TODO: CAN NOT use position along as key. not unique.
 
 
 # Given a 2x2 pixel block `pb`, its position is [c_row, c_colum]
