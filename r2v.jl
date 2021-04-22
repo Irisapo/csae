@@ -33,7 +33,7 @@ DirR = Dir("right", [:DirRD, :DirRU])
 DirD = Dir("down", [:DirDR, :DirD])
 DirDR = Dir("right", [:DirRU, :DirRD, :DirR])
 DirRU = Dir("up", [:END])
-DirRD = Dir("down", [:DirDR])
+DirRD = Dir("down", [:DirDR, :DirD])
 
 
 
