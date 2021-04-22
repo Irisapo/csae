@@ -62,10 +62,11 @@ mutable struct Arc
     start::Union{Array{Int64, 1}, Nothing} # start Node (represented by its position coordinates). 
     dne::Union{Array{Int64, 1}, Nothing}  # end Node's coordinates if any
 
-    linkArc::Union{Nothing, Arc}
-    # TODO:Need to change how linkArc is stored!!!!
+    #linkArc::Union{Nothing, Arc}
+    # Whenever change an Arc, change its linkArc's linkArc, its corsp Area's arm (self-pointer)
+    linkArc::Union{Nothing, Tuple{Array{Int64, 1}, Symbol}}    # Symbol is currentDir
 
-    currentDir::Symbol
+    linkArea::Int64
 
 	#color::UnionAll  # color + end/start position coordinates to find next vertex
     # Don't think color is necessary...
@@ -74,8 +75,7 @@ end
 
 mutable struct Area 
 	color::UnionAll
-	arm::Array{Arc}
-
+	arm::Array{Tuple{Array{Int64, 1}, Symbol}, 1}
     
 end
 
@@ -84,10 +84,9 @@ area_count=0
 area_list=Dic{Int, Area}()
 
 arc_count=0
-arc_list=Dict{Array{Int64, 1}, Arc}()
-# ^ Use current position of the Arc dangle point as Dictionary key
-# TODO: CAN NOT use position along as key. not unique.
-# use: Dirc{Tuple{Array{Int64, 1}, Symbol}, Arc}()
+arc_list=Dirc{Tuple{Array{Int64, 1}, Symbol}, Arc}()
+#arc_list=Dict{Array{Int64, 1}, Arc}()
+# CAN NOT use position along as key. not unique.
 
 
 # Given a 2x2 pixel block `pb`, its position is [c_row, c_colum]
@@ -99,19 +98,47 @@ elseif flag2 && flag3
     if  pb[1] != pb[2]
         #   -
         #  --
-        if arc_list[[c_row, c_colum-1]].currentDir == :DirR || arc_list[[c_row, c_colum-1]].currentDir == :DirDR
-            push!(arc_list[[c_row, c_colum-1]].vertices, [c_row, c_row])
-            arc_list[[c_row, c_colum-1]].currentDir = :DirRU
+        if haskey(arc_list, ([c_row, c_colum-1], :DirR)) \xor haskey(arc_list, ([c_row, c_colum-1], :DirDR))
+            arc=haskey(arc_list, ([c_row, c_colum-1], :DirR)) ? ([c_row, c_colum-1], :DirR); ([c_row, c_colum-1], :DirDR) 
 
-            arc_list[[c_row, c_colum]] = arc_list[[c_row, c_colum-1]]
-            pop!(arc_list, [c_row, c_colum-1])
+            push!(arc_list[arc].vertices, [c_row, c_row])
+            #arc_list[arc].currentDir = :DirRU
+
         end
+        
+        area=arc_list[arc].linkArea
 
         # check with "down" dir at [c_row-1, c_column] for connection
-        if arc_list[[c_row-1, c_column]].currentDir =+ :DirD || arc_list[[c_row-1, c_column]].currentDir == :DirRD
-            #
+        if haskey(arc_list, ([c_row-1, c_column], :DirD)) \xor haskey(arc_list, ([c_row-1, c_column], :DirRD))
+            cnnarc = haskey(arc_list, ([c_row-1, c_column], :DirD)) ? ([c_row-1, c_column], :DirD); ([c_row-1, c_column], :DirRD)
+            cnnarea = arc_list[cnnarc].linkArea
+            # linked complete
+            if arc_list[cnnarc].linkArc == arc && arc_list[arc].linkArc == cnnarc
+                pop!(area_list[area].arm, area);  pop!(area_list[cnnarea].arm, cnnarea)
+                if length(area_list[area].arm) == 0:
+                    #TODO:write(area_list[area], "completed_area.csv")
+                end
+                #TODO: But need to check if this area still exists first 
+                if length(area_list[cnnarea].arm) == 0:
+                    #TODO:write(area_list[cnnarea], "completed_area.csv")
+                end
+                
+                append!(arc_list[cnnarc].vertices, reverse(arc_list[arc].vertices))
+                #TODO:write(arc_list[cnnarc], "completed_arc.csv")
+                pop!(arc_list, arc);  pop!(arc_list, cnnarc)
+            end
+
+            # node complete
+
+            # linked incomplete
+
+            # node incomplete
         end
             
+            # Update Arc key
+            #arc_list[[c_row, c_colum]] = arc_list[[c_row, c_colum-1]]
+            #pop!(arc_list, [c_row, c_colum-1])
+
     end
 elseif flag2 && !flag3
     if  pb[1] == pb[3]
@@ -142,32 +169,21 @@ elseif !flag2 && flag3
 
 end
 
+o
 # Create a new area to the area list
 if true #Fill this part      *=   or  **  or   =*   or   +*
         #                 3  *-   3   =-  3?   *-   4    =-
-	arc_count =+1
-	arc_list[arc_count] = Arc([[c_row,c_colum]], 1, nothing, nothing)
-	area_count += 1
-	area_list[area_count]=Area( :color_TODO, [arc_list[arc_count]] )
-elseif true # File this part     -*
-            #                 2  *-
 	# rige-form creates 2 arms and link them to each other
-	arc_list[arc_count=+1] = Arc([[c_row,c_colum]], nothing, nothing, arc_count+1)
-	arc_list[arc_count=+1] = Arc([[c_row,c_colum]], nothing, nothing, arc_count-1)
-	area_list[area_count+=1]=Area( :color_TODO, [arc_list[arc_count-1], arc_list[arc_count]] )
 end
-#end -> elseif
 
 # Create a new arc 
 if true #TODO-fill this      -=   or  -*   
         #                 3  **   3   =*
-	#TODO
 end 
 #end -> elseif
 
 # Add vertex 
 if true #TODO-fill this      --   or  --   or  -*   or  *-
      #                    2  *-   2   -*   2   --   2   --
-	#TODO
 end
  
