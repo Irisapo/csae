@@ -212,6 +212,21 @@ if !flag2 && !flag3
 
     end
 
+    #TODO:check arc to connect w/ arc_list[((c_row, c_column), :DirR)]
+    @assert !haskey(arc_list, ([c_row-1, c_column+1], :DirD)) || !haskey(arc_list, ([c_row-1, c_column+1], :DirRD))
+    if haskey(arc_list, ([c_row-1, c_column+1], :DirD))
+        cnnarc = ([c_row-1, c_column+1], :DirD) 
+        cnnarea = arc_list[cnnarc].linkArc
+
+    elseif haskey(arc_list, ([c_row-1, c_column+1], :DirRD))
+        cnnarc = ([c_row-1, c_column+1], :DirRD)
+        cnnarea = arc_list[cnnarc].linkArc
+    else
+        cnnarc = nothing
+    end
+
+    
+
 elseif flag2 && flag3
     if  pb[1] != pb[2]
         #   -
