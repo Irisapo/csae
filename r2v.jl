@@ -6,7 +6,7 @@ using FileIO, Images
 img=load("polygon.png")
 
 ########################################
-# Relationships among direcvtions 
+# Relationships among directions 
 ########################################
 
 # 2x2 pixels index order:
@@ -21,26 +21,24 @@ struct Dir
     Dir(dir, next) = new(dir, next)
 end
 
-
 DirR = Dir("right", [:DirRD, :DirRU])
 DirD = Dir("down", [:DirDR, :DirD])
 DirDR = Dir("right", [:DirRU, :DirRD, :DirR])
 DirRU = Dir("up", [:END])
 DirRD = Dir("down", [:DirDR, :DirD])
 
-# events that will be recorded 
-
 ########################################
-# Relationships among direcvtions 
+# Relationships among directions 
 ########################################
 
+#TODO: vertex coordinate should be in tuple instead of array!!
 
 mutable struct Arc
-	#=
+    #=
     Only 1d-array can be appended, so use array-of-array to store vertex coordinates 
     each Vertex is an Array{Int64, 1}
     Node info is saved the same as Vertex, 
-    but Node is not in the `vertices` to indicates its different feature as start/end point`
+    but Node is not in the `vertices` to indicates its different feature as start/end point
     =# 
 
     vertices::Array{Array{Int64,1}}
@@ -48,12 +46,10 @@ mutable struct Arc
     start::Union{Array{Int64, 1}, Nothing} # start Node (represented by its position coordinates). 
     dne::Union{Array{Int64, 1}, Nothing}  # end Node's coordinates if any
 
-    #linkArc::Union{Nothing, Arc}
-    # Whenever change an Arc, change its linkArc's linkArc, its corsp Area's arm (self-pointer)
+    # Whenever changing an Arc, change its linkArc's linkArc, its corsp Area's arm (self-pointer)
     linkArc::Union{Nothing, Tuple{Array{Int64, 1}, Symbol}}    # Symbol is currentDir
 
     linkArea::Int64
-
 end
 
 mutable struct Area 
@@ -65,9 +61,7 @@ end
 area_count=0
 area_list=Dic{Int, Area}()
 
-arc_count=0
 arc_list=Dirc{Tuple{Array{Int64, 1}, Symbol}, Arc}()
-#arc_list=Dict{Array{Int64, 1}, Arc}()
 # CAN NOT use position alone as key. not unique.
 
 
