@@ -22,21 +22,13 @@ struct Dir
 end
 
 
-
 DirR = Dir("right", [:DirRD, :DirRU])
 DirD = Dir("down", [:DirDR, :DirD])
 DirDR = Dir("right", [:DirRU, :DirRD, :DirR])
 DirRU = Dir("up", [:END])
 DirRD = Dir("down", [:DirDR, :DirD])
 
-
-
 # events that will be recorded 
-
-
-# States
-# Border
-# Nonborder
 
 ########################################
 # Relationships among direcvtions 
@@ -64,13 +56,11 @@ mutable struct Arc
 
 end
 
-
 mutable struct Area 
 	color::UnionAll
 	arm::Array{Tuple{Array{Int64, 1}, Symbol}, 1}
     
 end
-
 
 area_count=0
 area_list=Dic{Int, Area}()
@@ -79,8 +69,6 @@ arc_count=0
 arc_list=Dirc{Tuple{Array{Int64, 1}, Symbol}, Arc}()
 #arc_list=Dict{Array{Int64, 1}, Arc}()
 # CAN NOT use position alone as key. not unique.
-
-
 
 
 function node_complete(arc::T, cnnarc::T, area::T2, cnnarea::T2, arc_list::Dict, area_list::Dict) where {T<:Tuple{Array{Int64, 1}, Symbol}, T2<:Int64}
@@ -120,9 +108,53 @@ function link_complete(arc::T, cnnarc::T, area::T2, cnnarea::T2, arc_list::Dict,
 
 end
 
-function node_incomplete(node_Arc::T, link_arc::T, area::T2, cnnarea::T2, arc_list::Dict, arc_area::Dict) where {T<:Tuple{Array{Int64, 1}, Symbol}, T2<:Int64}
+function node_incomplete(node_arc::T, link_arc::T, node_area::T2, link_area::T2, arc_list::Dict, arc_area::Dict) where {T<:Tuple{Array{Int64, 1}, Symbol}, T2<:Int64}
     
-    #TODO
+    cnn2arc = arc_list[link_arc].linkArc
+    # cnn2area = arc_list[cnn2arc].area # # should be the same as `link_area`
+    @assert arc_list[cnn2arc].linkArea == link_area
+
+
+    # flip link_arc
+    reverse!(arc_list[link_arc].vertices)
+    append!(arc_list[link_arc].vertices, arc_list[cnn2arc].vertices)
+    pop!(arc_list, cnn2arc)
+
+    # connect 
+    append!(arc_list[node_arc].vertices, arc_list[link_arc].vertices)
+    pop!(arc_list, link_arc)
+    
+    pop!(area_list[cnn2area].arm, cnn2arc)
+    pop!(area_list[link_area].arm, link_arc)
+    
+    # merge areas if necessary
+    if link_area != node_area
+        for arm in area_list[link_area].arm
+            arc_list[arm].linkArea = node_area
+        end
+    end      
+   
+end
+
+
+function node_complete(arc::T, cnnarc::T, area::T2, cnnarea::T2, arc_list::Dict, area_list::Dict) where {T<:Tuple{Array{Int64, 1}, Symbol}, T2<:Int64}
+    
+    append!(arc_list[cnnarc].vertices, reverse(arc_list[arc].vertices))
+    arc_list[cnnarc].dne = arc_list[arc].start
+
+    pop!(arc_list, arc)
+    pop!(area_list[area].arm, arc)
+
+    #TODO write(arc_list[cnnarc], "complete_arc.csv")
+    pop!(arc_list, cnnarc)
+    pop!(area_list[cnnarea].arm, cnnarc)
+
+    if length(area_list[area].arm) == 0
+        #TODO write(area_list[area], "complete_area.csv")
+    end
+    if length(area_list[cnnarea].arm) == 0
+        # TODO write(area_list[cnnarea], "complete_area.csv")
+    end
 
 end
 
