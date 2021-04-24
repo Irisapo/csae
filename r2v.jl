@@ -189,8 +189,16 @@ end
 # Given a 2x2 pixel block `pb`, its position is [c_row, c_column]
 flag2 = pb[4] == pb[2]: flag3 = pb[4] == pb[3]
 if !flag2 && !flag3
+    if pb[2] == pb[1] == pb[3]
+    # --
+    # -
+    
+        # create 2 linked arcs 
+        # create a new area
+    else
     # create node and create 2 arcs,
     # create a new area
+    end
 elseif flag2 && flag3
     if  pb[1] != pb[2]
         #   -
