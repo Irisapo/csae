@@ -202,27 +202,54 @@ if !flag2 && !flag3
         area_list[area_count] = Area(pb[4], [((c_row, c_column), :DirR), ((c_row, c_column), :DirD)])
 
     else
-    # create node and create 2 arcs,
-    # create a new area
+        # create node and create 2 arcs,
+        # create a new area
         arc_list[((c_row, c_column), :DirR)] = Arc([[c_row, c_column]], [c_row, c_column], nothing,  area_count)
         arc_list[((c_row, c_column), :DirD)] = Arc([[c_row, c_column]], [c_row, c_column], nothing,  area_count)
         area_list[area_count] = Area(pb[4], [((c_row, c_column), :DirR), ((c_row, c_column), :DirD)])
 
         #TODO: end/flip arcs if necessary
+        map((([c_row-1, c_column], :DirD), ([c_row-1, c_column], :DirRD),([c_row, c_column-1], :DirR),([c_row, c_column-1], :DirDR))) do arc
+            if haskey(arc_list, arc)
+
+                # node end 
+                if arc_list[arc].start != nothing
+                    area = arc_list[arc].linkArea
+                    arc_list[arc].dne = [c_row, c_column]
+                    #TODO: write(arc_list[arc], "complete_arc.csv")
+                    pop!(arc_list, arc)
+
+                    pop!(area_list[area].arm, arc)
+                    if length(area_list[area].arm) == 0
+                        #TODO: write(area_list[area], "compelte_area.csv")
+                        pop!(area_list, area)
+                    end
+
+                elseif arc_list[arc].linkArc != nothing
+                # link flip
+                    area = arc_list[arc].linkArea
+                    cnnarc = arc_list[arc].linkArc
+                    append!(arc_list[cnnarc].vertices, reverse(arc_list[arc].vertices))
+                    arc_list[cnnarc].start = [c_row, c_column]
+
+                    pop!(arc_list, arc)
+                    pop!(area_list[area].arm, arc)
+
+                end
+            end
+        end
 
     end
 
-    #TODO:check arc to connect w/ arc_list[((c_row, c_column), :DirR)]
+    # connect arc w/ arc_list[((c_row, c_column), :DirR)] if necessary
     @assert !haskey(arc_list, ([c_row-1, c_column+1], :DirD)) || !haskey(arc_list, ([c_row-1, c_column+1], :DirRD))
-    if haskey(arc_list, ([c_row-1, c_column+1], :DirD))
-        cnnarc = ([c_row-1, c_column+1], :DirD) 
-        cnnarea = arc_list[cnnarc].linkArc
-
-    elseif haskey(arc_list, ([c_row-1, c_column+1], :DirRD))
-        cnnarc = ([c_row-1, c_column+1], :DirRD)
-        cnnarea = arc_list[cnnarc].linkArc
-    else
-        cnnarc = nothing
+    arc = ((c_row, c_column), :DirR)
+    area = area_count
+    map((([c_row-1, c_column+1], :DirD), ([c_row-1, c_column+1], :DirRD), nothing)) do cnnarc
+            if haskey(arc_list, cnnarc)
+                cnnarea = arc_list[cnnarc].linkArc
+                arc_connect(arc, cnnarc, area, cnnarea, arc_list, area_list) 
+            end
     end
 
     
