@@ -68,8 +68,6 @@ mutable struct Arc
 
     linkArea::Int64
 
-	#color::UnionAll  # color + end/start position coordinates to find next vertex
-    # Don't think color is necessary...
 end
 
 
@@ -86,7 +84,7 @@ area_list=Dic{Int, Area}()
 arc_count=0
 arc_list=Dirc{Tuple{Array{Int64, 1}, Symbol}, Arc}()
 #arc_list=Dict{Array{Int64, 1}, Arc}()
-# CAN NOT use position along as key. not unique.
+# CAN NOT use position alone as key. not unique.
 
 
 # Given a 2x2 pixel block `pb`, its position is [c_row, c_colum]
@@ -117,10 +115,12 @@ elseif flag2 && flag3
                 pop!(area_list[area].arm, area);  pop!(area_list[cnnarea].arm, cnnarea)
                 if length(area_list[area].arm) == 0:
                     #TODO:write(area_list[area], "completed_area.csv")
+                    pop!(area_list, area)
                 end
                 #TODO: But need to check if this area still exists first 
                 if length(area_list[cnnarea].arm) == 0:
                     #TODO:write(area_list[cnnarea], "completed_area.csv")
+                    pop!(area_list, cnnarea)
                 end
                 
                 append!(arc_list[cnnarc].vertices, reverse(arc_list[arc].vertices))
@@ -129,6 +129,23 @@ elseif flag2 && flag3
             end
 
             # node complete
+            if arc_list[arc].start != nothing && arc_list[cnnarc].start != nothing
+                append!(arc_list[cnnarc].vertices, reverse(arc_list[arc].vertices))
+                arc_list[cnnarc].dne = arc_list[arc].start # end node 
+                #TODO:write(arc_list[cnnarc], "completed_arc.csv")
+                pop!(arc_list, arc);  pop!(arc_list, cnnarc)
+
+                if length(area_list[area].arm) == 0:
+                    #TODO:write(area_list[area], "completed_area.csv")
+                    pop!(area_list, area)
+                end
+                #TODO: But need to check if this area still exists first 
+                if length(area_list[cnnarea].arm) == 0:
+                    #TODO:write(area_list[cnnarea], "completed_area.csv")
+                    pop!(area_list, cnnarea)
+                end
+ 
+            end
 
             # linked incomplete
 
@@ -152,6 +169,7 @@ elseif flag2 && !flag3
     else
         #   #*
         #   --
+        # 
     end
 elseif !flag2 && flag3
     if  pb[1] == pb[2]
