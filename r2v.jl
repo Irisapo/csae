@@ -160,6 +160,31 @@ function node_complete(arc::T, cnnarc::T, area::T2, cnnarea::T2, arc_list::Dict,
 
 end
 
+function arc_connect(arc::T, cnnarc::T, area::T2, cnnarea::T2, arc_list::Dict, area_list::Dict) where {T<:Tuple{Array{Int64, 1}, Symbol}, T2<:Int64}
+
+    if arc_list[arc].linkArc != nothing
+        if arc_list[cnnarc].linkArc != nothing
+            ## linked complete
+            if arc_list[cnnarc].linkArc == arc && arc_list[arc].linkArc == cnnarc
+                link_complete(arc, cnnarc, area, cnnarea, arc_list, area_list)
+            end
+        else 
+            # cnnarc has start node
+            ## linked incomplete  (one arc with link, one arc with node)
+            node_incomplete(cnnarc, arc, cnnarea, area, arc_list, arc_area)
+        end
+    else
+        if arc_list[cnnarc].linkArc != nothing
+            # arc has start node
+            ## linked incomplete  (one arc with link, one arc with node)
+            node_incomplete(arc, cnnarc, area, cnnarea, arc_list, arc_area)
+        else
+            ## node complete
+            node_complete(arc, cnnarc, area, cnnarea, arc_list, area_list) 
+        end
+    end
+end
+
 
 # Given a 2x2 pixel block `pb`, its position is [c_row, c_column]
 flag2 = pb[4] == pb[2]: flag3 = pb[4] == pb[3]
@@ -184,28 +209,30 @@ elseif flag2 && flag3
 
             area=arc_list[arc].linkArea
 
-            if arc_list[arc].linkArc != nothing
-                if arc_list[cnnarc].linkArc != nothing
-                    ## linked complete
-                    if arc_list[cnnarc].linkArc == arc && arc_list[arc].linkArc == cnnarc
-                        link_complete(arc, cnnarc, area, cnnarea, arc_list, area_list)
-                    end
-                else 
-                    # cnnarc has start node
-                    ## linked incomplete  (one arc with link, one arc with node)
-                    node_incomplete(cnnarc, arc, cnnarea, area, arc_list, arc_area)
-                end
-            else
-                if arc_list[cnnarc].linkArc != nothing
-                    # arc has start node
-                    ## linked incomplete  (one arc with link, one arc with node)
-                    node_incomplete(arc, cnnarc, area, cnnarea, arc_list, arc_area)
-                else
-                    ## node complete
-                    node_complete(arc, cnnarc, area, cnnarea, arc_list, area_list) 
-                end
-            end
 
+            arc_connect(arc, cnnarc, area, cnnarea, arc_list, area_list) 
+            # if arc_list[arc].linkArc != nothing
+            #     if arc_list[cnnarc].linkArc != nothing
+            #         ## linked complete
+            #         if arc_list[cnnarc].linkArc == arc && arc_list[arc].linkArc == cnnarc
+            #             link_complete(arc, cnnarc, area, cnnarea, arc_list, area_list)
+            #         end
+            #     else 
+            #         # cnnarc has start node
+            #         ## linked incomplete  (one arc with link, one arc with node)
+            #         node_incomplete(cnnarc, arc, cnnarea, area, arc_list, arc_area)
+            #     end
+            # else
+            #     if arc_list[cnnarc].linkArc != nothing
+            #         # arc has start node
+            #         ## linked incomplete  (one arc with link, one arc with node)
+            #         node_incomplete(arc, cnnarc, area, cnnarea, arc_list, arc_area)
+            #     else
+            #         ## node complete
+            #         node_complete(arc, cnnarc, area, cnnarea, arc_list, area_list) 
+            #     end
+            # end
+ 
            
         end
 
@@ -227,7 +254,8 @@ elseif flag2 && !flag3
 
             area = arc_list[arc].linkArea
             
-            #TODO: connect scenarios
+            # connect scenarios
+            arc_connect(arc, cnnarc, area, cnnarea, arc_list, area_list)
         
         else
         # update arc
@@ -249,7 +277,8 @@ elseif flag2 && !flag3
 
             area = arc_list[arc].linkArea
 
-            #TODO: connect scenarios
+            # connect scenarios
+            arc_connect(arc, cnnarc, area, cnnarea, arc_list, area_list)
 
         else
         # update arc
