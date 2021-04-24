@@ -162,7 +162,7 @@ end
 
 
 # Given a 2x2 pixel block `pb`, its position is [c_row, c_column]
-flag2 = pb[4] == pb[2]; flag3 = pb[4] == pb[3]
+flag2 = pb[4] == pb[2]: flag3 = pb[4] == pb[3]
 if !flag2 && !flag3
     # create node and create 2 arcs,
     # create a new area
@@ -171,15 +171,15 @@ elseif flag2 && flag3
         #   -
         #  --
         if haskey(arc_list, ([c_row, c_column-1], :DirR)) \xor haskey(arc_list, ([c_row, c_column-1], :DirDR))
-            arc=haskey(arc_list, ([c_row, c_column-1], :DirR)) ? ([c_row, c_column-1], :DirR); ([c_row, c_column-1], :DirDR) 
+            arc=haskey(arc_list, ([c_row, c_column-1], :DirR)) ? ([c_row, c_column-1], :DirR): ([c_row, c_column-1], :DirDR) 
 
             push!(arc_list[arc].vertices, [c_row, c_row])
 
 
             # check with "down" dir at [c_row-1, c_column] for connection
-            # Must Has An Arc To Connect
+            # Must Have An Arc To Connect
             @assert haskey(arc_list, ([c_row-1, c_column], :DirD)) \xor haskey(arc_list, ([c_row-1, c_column], :DirRD))
-            cnnarc = haskey(arc_list, ([c_row-1, c_column], :DirD)) ? ([c_row-1, c_column], :DirD); ([c_row-1, c_column], :DirRD)
+            cnnarc = haskey(arc_list, ([c_row-1, c_column], :DirD)) ? ([c_row-1, c_column], :DirD): ([c_row-1, c_column], :DirRD)
             cnnarea = arc_list[cnnarc].linkArea
 
             area=arc_list[arc].linkArea
@@ -189,7 +189,7 @@ elseif flag2 && flag3
                     ## linked complete
                     if arc_list[cnnarc].linkArc == arc && arc_list[arc].linkArc == cnnarc
                         link_complete(arc, cnnarc, area, cnnarea, arc_list, area_list)
-                    else
+                    end
                 else 
                     # cnnarc has start node
                     ## linked incomplete  (one arc with link, one arc with node)
@@ -210,18 +210,19 @@ elseif flag2 && flag3
         end
 
     end
+
 elseif flag2 && !flag3
     if  pb[1] == pb[3]
         #   --
         #   **  
         @assert haskey(arc_list, ([c_row, c_column-1],:DirR)) \xor haskey(arc_list, ([c_row, c_column-1],:DirDR))
-        arc = haskey(arc_list, ([c_row, c_column-1],:DirR)) ? ([c_row, c_column-1],:DirR); ([c_row, c_column-1],:DirDR)
+        arc = haskey(arc_list, ([c_row, c_column-1],:DirR)) ? ([c_row, c_column-1],:DirR): ([c_row, c_column-1],:DirDR)
         push!(arc_list[arc].vertices, [c_row, c_column])
 
 
         # connect w/ down at [c_row-1, c_column+1] if possible
         if haskey(arc_list, ([c_row-1, c_column+1], :DirD)) \xor haskey(arc_list, ([c_row-1, c_column+1], :DirRD))
-            cnnarc = haskey(arc_list, ([c_row-1, c_column+1], :DirD)) ? ([c_row-1, c_column+1], :DirD); ([c_row-1, c_column+1], :DirRD)
+            cnnarc = haskey(arc_list, ([c_row-1, c_column+1], :DirD)) ? ([c_row-1, c_column+1], :DirD): ([c_row-1, c_column+1], :DirRD)
             cnnarea = arc_list[cnnarc].linkArea
 
             area = arc_list[arc].linkArea
@@ -238,12 +239,12 @@ elseif flag2 && !flag3
         #   -
         #   --
         @assert haskey(arc_list, ([c_row-1, c_column],:DirD)) \xor haskey(arc_list, ([c_row-1, c_column],:DirRD))
-        arc = haskey(arc_list, ([c_row-1, c_column],:DirD))? ([c_row-1, c_column],:DirD); ([c_row-1, c_column],:DirRD)
+        arc = haskey(arc_list, ([c_row-1, c_column],:DirD))? ([c_row-1, c_column],:DirD): ([c_row-1, c_column],:DirRD)
         push!(arc_list[arc].vertices, [c_row, c_column])
 
         # conect w/ down at [c_row-1, c_column+1] if possible
         if haskey(arc_list, ([c_row-1, c_column+1], :DirD)) \xor haskey(arc_list, ([c_row-1, c_column+1], :DirRD))
-            cnnarc = haskey(arc_list, ([c_row-1, c_column+1], :DirD)) ? ([c_row-1, c_column+1], :DirD); ([c_row-1, c_column+1], :DirRD)
+            cnnarc = haskey(arc_list, ([c_row-1, c_column+1], :DirD)) ? ([c_row-1, c_column+1], :DirD): ([c_row-1, c_column+1], :DirRD)
             cnnarea = arc_list[cnnarc].linkArea
 
             area = arc_list[arc].linkArea
@@ -266,7 +267,7 @@ elseif !flag2 && flag3
         #   -*
         #   -* 
         @assert haskey(arc_list, ([c_row-1, c_column], :DirD)) \xor haskey(arc_list, ([c_row-1, c_column], :DirRD))
-        arc = haskey(arc_list, ([c_row-1, c_column], :DirD)) ?  ([c_row-1, c_column], :DirD); ([c_row-1, c_column], :DirRD)
+        arc = haskey(arc_list, ([c_row-1, c_column], :DirD)) ?  ([c_row-1, c_column], :DirD): ([c_row-1, c_column], :DirRD)
         push!(arc_list[arc].vertices, [c_row, c_column])
 
         arc_list[([c_row, c_column], :DirD)] = arc_list[arc]
@@ -278,7 +279,7 @@ elseif !flag2 && flag3
         #   --
         #    -
         @assert haskey(arc_list, ([c_row, c_column-1], :DirR)) \xor haskey(arc_list, ([c_row, c_column-1], :DirDR))
-        arc = haskey(arc_list, ([c_row, c_column-1], :DirR)) ? ([c_row, c_column-1], :DirR); ([c_row, c_column-1], :DirDR)
+        arc = haskey(arc_list, ([c_row, c_column-1], :DirR)) ? ([c_row, c_column-1], :DirR): ([c_row, c_column-1], :DirDR)
         push!(arc_list[arc].vertices, [c_row, c_column])
 
         arc_list[([c_row, c_column], :DirD)] = arc_list[arc]
