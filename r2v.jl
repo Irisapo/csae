@@ -189,16 +189,29 @@ end
 # Given a 2x2 pixel block `pb`, its position is [c_row, c_column]
 flag2 = pb[4] == pb[2]: flag3 = pb[4] == pb[3]
 if !flag2 && !flag3
+    area_count += 1
+
     if pb[2] == pb[1] == pb[3]
     # --
     # -
-    
         # create 2 linked arcs 
         # create a new area
+
+        arc_list[((c_row, c_column), :DirR)] = Arc([[c_row, c_column]], nothing, nothing, ((c_row, c_column), :DirD), area_count)
+        arc_list[((c_row, c_column), :DirD)] = Arc([[c_row, c_column]], nothing, nothing, ((c_row, c_column), :DirR), area_count)
+        area_list[area_count] = Area(pb[4], [((c_row, c_column), :DirR), ((c_row, c_column), :DirD)])
+
     else
     # create node and create 2 arcs,
     # create a new area
+        arc_list[((c_row, c_column), :DirR)] = Arc([[c_row, c_column]], [c_row, c_column], nothing,  area_count)
+        arc_list[((c_row, c_column), :DirD)] = Arc([[c_row, c_column]], [c_row, c_column], nothing,  area_count)
+        area_list[area_count] = Area(pb[4], [((c_row, c_column), :DirR), ((c_row, c_column), :DirD)])
+
+        #TODO: end/flip arcs if necessary
+
     end
+
 elseif flag2 && flag3
     if  pb[1] != pb[2]
         #   -
