@@ -81,6 +81,52 @@ arc_list=Dirc{Tuple{Array{Int64, 1}, Symbol}, Arc}()
 # CAN NOT use position alone as key. not unique.
 
 
+
+
+function node_complete(arc::T, cnnarc::T, area::T2, cnnarea::T2, arc_list::Dict, area_list::Dict) where {T<:Tuple{Array{Int64, 1}, Symbol}, T2<:Int64}
+    append!(arc_list[cnnarc].vertices, reverse(arc_list[arc].vertices))
+    arc_list[cnnarc].dne = arc_list[arc].start # end node 
+    #TODO:write(arc_list[cnnarc], "completed_arc.csv")
+    pop!(arc_list, arc)
+    pop!(arc_list, cnnarc)
+
+    if length(area_list[area].arm) == 0
+        #TODO:write(area_list[area], "completed_area.csv")
+        pop!(area_list, area)
+    end
+    #TODO: But need to check if this area still exists first 
+    if length(area_list[cnnarea].arm) == 0
+        #TODO:write(area_list[cnnarea], "completed_area.csv")
+        pop!(area_list, cnnarea)
+    end
+
+end
+
+function link_complete(arc::T, cnnarc::T, area::T2, cnnarea::T2, arc_list::Dict, area_list::Dict) where {T<:Tuple{Array{Int64, 1}, Symbol}, T2<:Int64}
+    pop!(area_list[area].arm, area);  pop!(area_list[cnnarea].arm, cnnarea)
+    if length(area_list[area].arm) == 0:
+        #TODO:write(area_list[area], "completed_area.csv")
+        pop!(area_list, area)
+    end
+    #TODO: But need to check if this area still exists first 
+    if length(area_list[cnnarea].arm) == 0:
+        #TODO:write(area_list[cnnarea], "completed_area.csv")
+        pop!(area_list, cnnarea)
+    end
+    
+    append!(arc_list[cnnarc].vertices, reverse(arc_list[arc].vertices))
+    #TODO:write(arc_list[cnnarc], "completed_arc.csv")
+    pop!(arc_list, arc);  pop!(arc_list, cnnarc)
+
+end
+
+function node_incomplete(node_Arc::T, link_arc::T, area::T2, cnnarea::T2, arc_list::Dict, arc_area::Dict) where {T<:Tuple{Array{Int64, 1}, Symbol}, T2<:Int64}
+    
+    #TODO
+
+end
+
+
 # Given a 2x2 pixel block `pb`, its position is [c_row, c_colum]
 flag2 = pb[4] == pb[2]; flag3 = pb[4] == pb[3]
 if !flag2 && !flag3
@@ -104,51 +150,29 @@ elseif flag2 && flag3
         if haskey(arc_list, ([c_row-1, c_column], :DirD)) \xor haskey(arc_list, ([c_row-1, c_column], :DirRD))
             cnnarc = haskey(arc_list, ([c_row-1, c_column], :DirD)) ? ([c_row-1, c_column], :DirD); ([c_row-1, c_column], :DirRD)
             cnnarea = arc_list[cnnarc].linkArea
-            # linked complete
-            if arc_list[cnnarc].linkArc == arc && arc_list[arc].linkArc == cnnarc
-                pop!(area_list[area].arm, area);  pop!(area_list[cnnarea].arm, cnnarea)
-                if length(area_list[area].arm) == 0:
-                    #TODO:write(area_list[area], "completed_area.csv")
-                    pop!(area_list, area)
+
+            if arc_list[arc].linkArc != nothing
+                if arc_list[cnnarc].linkArc != nothing
+                    ## linked complete
+                    if arc_list[cnnarc].linkArc == arc && arc_list[arc].linkArc == cnnarc
+                        link_complete(arc, cnnarc, area, cnnarea, arc_list, area_list)
+                    else
+                else 
+                    # cnnarc has start node
+                    ## linked incomplete  (one arc with link, one arc with node)
+                    node_incomplete(node_arc, link_arc, arc_list, arc_area)
                 end
-                #TODO: But need to check if this area still exists first 
-                if length(area_list[cnnarea].arm) == 0:
-                    #TODO:write(area_list[cnnarea], "completed_area.csv")
-                    pop!(area_list, cnnarea)
+            else
+                if arc_list[cnnarc].linkArc != nothing
+                    # arc has start node
+                    ## linked incomplete  (one arc with link, one arc with node)
+                    node_incomplete(node_Arc, link_arc, arc_list, arc_area)
+                else
+                    ## node complete
+                    node_complete(arc, cnnarc, area, cnnarea, arc_list, area_list) 
                 end
-                
-                append!(arc_list[cnnarc].vertices, reverse(arc_list[arc].vertices))
-                #TODO:write(arc_list[cnnarc], "completed_arc.csv")
-                pop!(arc_list, arc);  pop!(arc_list, cnnarc)
             end
 
-            # node complete
-            if arc_list[arc].start != nothing && arc_list[cnnarc].start != nothing
-                append!(arc_list[cnnarc].vertices, reverse(arc_list[arc].vertices))
-                arc_list[cnnarc].dne = arc_list[arc].start # end node 
-                #TODO:write(arc_list[cnnarc], "completed_arc.csv")
-                pop!(arc_list, arc);  pop!(arc_list, cnnarc)
-
-                if length(area_list[area].arm) == 0:
-                    #TODO:write(area_list[area], "completed_area.csv")
-                    pop!(area_list, area)
-                end
-                #TODO: But need to check if this area still exists first 
-                if length(area_list[cnnarea].arm) == 0:
-                    #TODO:write(area_list[cnnarea], "completed_area.csv")
-                    pop!(area_list, cnnarea)
-                end
- 
-            end
-
-            # linked incomplete
-
-            # node incomplete
-        end
-            
-            # Update Arc key
-            #arc_list[[c_row, c_colum]] = arc_list[[c_row, c_colum-1]]
-            #pop!(arc_list, [c_row, c_colum-1])
 
     end
 elseif flag2 && !flag3
