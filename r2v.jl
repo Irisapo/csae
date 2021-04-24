@@ -21,12 +21,6 @@ struct Dir
     Dir(dir, next) = new(dir, next)
 end
 
-#
-#DIR1 = Dir([2, 4, 3], [:DIR2, :DIR3])
-#DIR2 = Dir([4, 3, 1], [:DIR1, :DIR4])
-#DIR3 = Dir([1, 2, 4], [:DIR1, :DIR4])
-#DIR4 = Dir([3, 1, 2], [:DIR2, :DIR3])
-#
 
 
 DirR = Dir("right", [:DirRD, :DirRU])
@@ -187,21 +181,3 @@ elseif !flag2 && flag3
 
 end
 
-o
-# Create a new area to the area list
-if true #Fill this part      *=   or  **  or   =*   or   +*
-        #                 3  *-   3   =-  3?   *-   4    =-
-	# rige-form creates 2 arms and link them to each other
-end
-
-# Create a new arc 
-if true #TODO-fill this      -=   or  -*   
-        #                 3  **   3   =*
-end 
-#end -> elseif
-
-# Add vertex 
-if true #TODO-fill this      --   or  --   or  -*   or  *-
-     #                    2  *-   2   -*   2   --   2   --
-end
- 
