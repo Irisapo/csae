@@ -422,7 +422,7 @@ elseif !flag2 && flag3
         #   #-
         #   *-
         @assert haskey(arc_list, ([c_row, c_column-1], :DirR)) \xor haskey(arc_list, ([c_row, c_column-1], :DirDR))
-        areaarc = haskey(arc_list, ([c_row-1, c_column], :DirD)) ? ([c_row-1, c_column], :DirD): ([c_row-1, c_column], :DirRD)
+        areaarc = haskey(arc_list, ([c_row, c_column-1], :DirR)) ? ([c_row, c_column-1], :DirR): ([c_row, c_column-1], :DirDR)
         area = arc_list[areaarc].linkArea
         # create new arc
         arc_list[([c_row, c_column], :DirD)] = Arc([], [c_row, c_column], nothing,  area)         
