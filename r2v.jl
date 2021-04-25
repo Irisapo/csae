@@ -206,6 +206,23 @@ function link_flip(node::Array{Int64,1}, arc::Tuple{Array{Int64,1}, Symbol}, are
 
 end
 
+function node_connect(node::Array{Int64,1}, arc::Tuple{Array{Int64,1}, Symbol}, area::Int64, arc_list::Dict, area_list::Dict)
+    # node end 
+    if arc_list[arc].start != nothing
+
+        area = arc_list[arc].linkArea
+        node_end(node, arc, area, arc_list, area_list)
+
+    elseif arc_list[arc].linkArc != nothing
+    # link flip
+        area = arc_list[arc].linkArea
+
+        link_flip(node, arc, cnnarc, area, arc_list, area_list) 
+
+    end
+
+end
+
 
 # Given a 2x2 pixel block `pb`, its position is [c_row, c_column]
 flag2 = pb[4] == pb[2]: flag3 = pb[4] == pb[3]
@@ -242,21 +259,10 @@ if !flag2 && !flag3
 
         map((([c_row-1, c_column+1], :DirD), ([c_row-1, c_column+1], :DirRD),([c_row, c_column-1], :DirR),([c_row, c_column-1], :DirDR))) do arc
             if haskey(arc_list, arc)
-
-                # node end 
-                if arc_list[arc].start != nothing
-
-                    area = arc_list[arc].linkArea
-                    node_end([c_row, c_column], arc, area, arc_list, area_list)
-
-                elseif arc_list[arc].linkArc != nothing
-                # link flip
-                    area = arc_list[arc].linkArea
-
-                    link_flip([c_row, c_column], arc, cnnarc, area, arc_list, area_list) 
-
-                end
-            end
+                
+                area = arc_list[arc].linkArea
+                node_connect([c_row, c_column], arc, area, arc_list, area_list)
+           end
         end
 
     end
@@ -376,9 +382,18 @@ elseif flag2 && !flag3
         areaarc = haskey(arc_list, ([c_row-1, c_column], :DirD)) ? ([c_row-1, c_column], :DirD): ([c_row-1, c_column], :DirRD)
         area = arc_list[areaarc].linkArea
         # create new arc
-        arc_list[((c_row, c_column), :DirR)] = Arc([], [c_row, c_column], nothing,  area)         
+        arc_list[([c_row, c_column], :DirR)] = Arc([], [c_row, c_column], nothing,  area)         
+        push!(area_list[area].arm, ([c_row, c_column], :DirR))
 
-        #TODO connect w/ arcs created before
+        # connect w/ arcs if necessary 
+        map((([c_row-1, c_column], :DirD), ([c_row-1, c_column], :DirRD), ([c_row, c_column-1], :DirR), ([c_row-1, c_column], :DirDR))) do arc
+            if haskey(arc_list, arc) 
+
+                area = arc_list[arc].linkArea
+                node_connect([c_row, c_column], arc, area, arc_list, area_list)
+            end
+        end
+
 
     end
 elseif !flag2 && flag3
@@ -406,6 +421,23 @@ elseif !flag2 && flag3
     else
         #   #-
         #   *-
+        @assert haskey(arc_list, ([c_row, c_column-1], :DirR)) \xor haskey(arc_list, ([c_row, c_column-1], :DirDR))
+        areaarc = haskey(arc_list, ([c_row-1, c_column], :DirD)) ? ([c_row-1, c_column], :DirD): ([c_row-1, c_column], :DirRD)
+        area = arc_list[areaarc].linkArea
+        # create new arc
+        arc_list[([c_row, c_column], :DirD)] = Arc([], [c_row, c_column], nothing,  area)         
+        push!(area_list[area].arm, ([c_row, c_column], :DirD))
+
+        # connect w/ arcs if necessary 
+        map((([c_row-1, c_column], :DirD), ([c_row-1, c_column], :DirRD), ([c_row, c_column-1], :DirR), ([c_row-1, c_column], :DirDR))) do arc
+            if haskey(arc_list, arc) 
+
+                area = arc_list[arc].linkArea
+                node_connect([c_row, c_column], arc, area, arc_list, area_list)
+            end
+        end
+
+
     end
 
 end
