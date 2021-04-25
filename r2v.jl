@@ -180,6 +180,33 @@ function arc_connect(arc::T, cnnarc::T, area::T2, cnnarea::T2, arc_list::Dict, a
 end
 
 
+function node_end(node::Array{Int64, 1}, arc::Tuple{Array{Int64, 1}, Symbol}, area::Int64, arc_list::Dict, area_list::Dict)
+
+    arc_list[arc].dne = node 
+    #TODO: write(arc_list[arc], "complete_arc.csv")
+    pop!(arc_list, arc)
+
+    pop!(area_list[area].arm, arc)
+    if length(area_list[area].arm) == 0
+        #TODO: write(area_list[area], "compelte_area.csv")
+        pop!(area_list, area)
+    end
+end
+
+
+function link_flip(node::Array{Int64,1}, arc::Tuple{Array{Int64,1}, Symbol}, area::Int64, arc_list::Dict, area_list::Dict) 
+    cnnarc = arc_list[arc].linkArc
+
+    append!(arc_list[cnnarc].vertices, reverse(arc_list[arc].vertices))
+    arc_list[cnnarc].start = node 
+
+    pop!(arc_list, arc)
+    pop!(area_list[area].arm, arc)
+
+
+end
+
+
 # Given a 2x2 pixel block `pb`, its position is [c_row, c_column]
 flag2 = pb[4] == pb[2]: flag3 = pb[4] == pb[3]
 if !flag2 && !flag3
@@ -188,46 +215,45 @@ if !flag2 && !flag3
     if pb[2] == pb[1] == pb[3]
     # --
     # -
-        # create 2 linked arcs 
-        # create a new area
+    # create 2 linked arcs 
+    # create a new area
 
-        arc_list[((c_row, c_column), :DirR)] = Arc([[c_row, c_column]], nothing, nothing, ((c_row, c_column), :DirD), area_count)
-        arc_list[((c_row, c_column), :DirD)] = Arc([[c_row, c_column]], nothing, nothing, ((c_row, c_column), :DirR), area_count)
+        arc_list[([c_row, c_column], :DirR)] = Arc([[c_row, c_column]], nothing, nothing, ((c_row, c_column), :DirD), area_count)
+        arc_list[([c_row, c_column], :DirD)] = Arc([[c_row, c_column]], nothing, nothing, ((c_row, c_column), :DirR), area_count)
         area_list[area_count] = Area(pb[4], [((c_row, c_column), :DirR), ((c_row, c_column), :DirD)])
+
+        # connect arc if necessary
+        if haskey(arc_list, ([c_row-1, c_column+1], :DirD)) \xor haskey(arc_list, ([c_row-1, c_column+1], :DirRD))
+            cnnarc = haskey(arc_list, ([c_row-1, c_column+1], :DirD)) ? ([c_row-1, c_column+1], :DirD) : ([c_row-1, c_column+1], :DirRD)
+            cnnarea = arc_list[cnnarc].linkArea
+
+            arc = ([c_row, c_column], :DirR)
+            area = area_count
+
+            arc_connect(arc, cnnarc, area, cnnarea, arc_list, area_list) 
+        end
 
     else
-        # create node and create 2 arcs,
-        # create a new area
-        arc_list[((c_row, c_column), :DirR)] = Arc([[c_row, c_column]], [c_row, c_column], nothing,  area_count)
-        arc_list[((c_row, c_column), :DirD)] = Arc([[c_row, c_column]], [c_row, c_column], nothing,  area_count)
+    # create node and create 2 arcs,
+    # create a new area
+        arc_list[((c_row, c_column), :DirR)] = Arc([], [c_row, c_column], nothing,  area_count)
+        arc_list[((c_row, c_column), :DirD)] = Arc([], [c_row, c_column], nothing,  area_count)
         area_list[area_count] = Area(pb[4], [((c_row, c_column), :DirR), ((c_row, c_column), :DirD)])
 
-        #TODO: end/flip arcs if necessary
-        map((([c_row-1, c_column], :DirD), ([c_row-1, c_column], :DirRD),([c_row, c_column-1], :DirR),([c_row, c_column-1], :DirDR))) do arc
+        map((([c_row-1, c_column+1], :DirD), ([c_row-1, c_column+1], :DirRD),([c_row, c_column-1], :DirR),([c_row, c_column-1], :DirDR))) do arc
             if haskey(arc_list, arc)
 
                 # node end 
                 if arc_list[arc].start != nothing
-                    area = arc_list[arc].linkArea
-                    arc_list[arc].dne = [c_row, c_column]
-                    #TODO: write(arc_list[arc], "complete_arc.csv")
-                    pop!(arc_list, arc)
 
-                    pop!(area_list[area].arm, arc)
-                    if length(area_list[area].arm) == 0
-                        #TODO: write(area_list[area], "compelte_area.csv")
-                        pop!(area_list, area)
-                    end
+                    area = arc_list[arc].linkArea
+                    node_end([c_row, c_column], arc, area, arc_list, area_list)
 
                 elseif arc_list[arc].linkArc != nothing
                 # link flip
                     area = arc_list[arc].linkArea
-                    cnnarc = arc_list[arc].linkArc
-                    append!(arc_list[cnnarc].vertices, reverse(arc_list[arc].vertices))
-                    arc_list[cnnarc].start = [c_row, c_column]
 
-                    pop!(arc_list, arc)
-                    pop!(area_list[area].arm, arc)
+                    link_flip([c_row, c_column], arc, cnnarc, area, arc_list, area_list) 
 
                 end
             end
@@ -315,7 +341,7 @@ elseif flag2 && !flag3
             arc_connect(arc, cnnarc, area, cnnarea, arc_list, area_list)
         
         else
-        # update arc
+        # update arc key
             arc_list[([c_row, c_column],:DirR)] = arc_list[arc]
             pop!(arc_list, arc)
         end
@@ -346,7 +372,14 @@ elseif flag2 && !flag3
     else
         #   #*
         #   --
-        # 
+        @assert haskey(arc_list, ([c_row-1, c_column], :DirD)) \xor haskey(arc_list, ([c_row-1, c_column], :DirRD))
+        areaarc = haskey(arc_list, ([c_row-1, c_column], :DirD)) ? ([c_row-1, c_column], :DirD): ([c_row-1, c_column], :DirRD)
+        area = arc_list[areaarc].linkArea
+        # create new arc
+        arc_list[((c_row, c_column), :DirR)] = Arc([], [c_row, c_column], nothing,  area)         
+
+        #TODO connect w/ arcs created before
+
     end
 elseif !flag2 && flag3
     if  pb[1] == pb[2]
