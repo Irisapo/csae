@@ -235,9 +235,9 @@ if !flag2 && !flag3
     # create 2 linked arcs 
     # create a new area
 
-        arc_list[([c_row, c_column], :DirR)] = Arc([[c_row, c_column]], nothing, nothing, ((c_row, c_column), :DirD), area_count)
-        arc_list[([c_row, c_column], :DirD)] = Arc([[c_row, c_column]], nothing, nothing, ((c_row, c_column), :DirR), area_count)
-        area_list[area_count] = Area(pb[4], [((c_row, c_column), :DirR), ((c_row, c_column), :DirD)])
+        arc_list[([c_row, c_column], :DirR)] = Arc([[c_row, c_column]], nothing, nothing, ([c_row, c_column], :DirD), area_count)
+        arc_list[([c_row, c_column], :DirD)] = Arc([[c_row, c_column]], nothing, nothing, ([c_row, c_column], :DirR), area_count)
+        area_list[area_count] = Area(pb[4], [([c_row, c_column], :DirR), ([c_row, c_column], :DirD)])
 
         # connect arc if necessary
         if haskey(arc_list, ([c_row-1, c_column+1], :DirD)) \xor haskey(arc_list, ([c_row-1, c_column+1], :DirRD))
@@ -253,9 +253,9 @@ if !flag2 && !flag3
     else
     # create node and create 2 arcs,
     # create a new area
-        arc_list[((c_row, c_column), :DirR)] = Arc([], [c_row, c_column], nothing,  area_count)
-        arc_list[((c_row, c_column), :DirD)] = Arc([], [c_row, c_column], nothing,  area_count)
-        area_list[area_count] = Area(pb[4], [((c_row, c_column), :DirR), ((c_row, c_column), :DirD)])
+        arc_list[([c_row, c_column], :DirR)] = Arc([], [c_row, c_column], nothing,  area_count)
+        arc_list[([c_row, c_column], :DirD)] = Arc([], [c_row, c_column], nothing,  area_count)
+        area_list[area_count] = Area(pb[4], [([c_row, c_column], :DirR), ([c_row, c_column], :DirD)])
 
         map((([c_row-1, c_column+1], :DirD), ([c_row-1, c_column+1], :DirRD),([c_row, c_column-1], :DirR),([c_row, c_column-1], :DirDR))) do arc
             if haskey(arc_list, arc)
@@ -267,9 +267,9 @@ if !flag2 && !flag3
 
     end
 
-    # connect arc w/ arc_list[((c_row, c_column), :DirR)] if necessary
+    # connect arc w/ arc_list[([c_row, c_column], :DirR)] if necessary
     @assert !haskey(arc_list, ([c_row-1, c_column+1], :DirD)) || !haskey(arc_list, ([c_row-1, c_column+1], :DirRD))
-    arc = ((c_row, c_column), :DirR)
+    arc = ([c_row, c_column], :DirR)
     area = area_count
     map((([c_row-1, c_column+1], :DirD), ([c_row-1, c_column+1], :DirRD), nothing)) do cnnarc
             if haskey(arc_list, cnnarc)
@@ -300,28 +300,6 @@ elseif flag2 && flag3
 
 
             arc_connect(arc, cnnarc, area, cnnarea, arc_list, area_list) 
-            # if arc_list[arc].linkArc != nothing
-            #     if arc_list[cnnarc].linkArc != nothing
-            #         ## linked complete
-            #         if arc_list[cnnarc].linkArc == arc && arc_list[arc].linkArc == cnnarc
-            #             link_complete(arc, cnnarc, area, cnnarea, arc_list, area_list)
-            #         end
-            #     else 
-            #         # cnnarc has start node
-            #         ## linked incomplete  (one arc with link, one arc with node)
-            #         node_incomplete(cnnarc, arc, cnnarea, area, arc_list, arc_area)
-            #     end
-            # else
-            #     if arc_list[cnnarc].linkArc != nothing
-            #         # arc has start node
-            #         ## linked incomplete  (one arc with link, one arc with node)
-            #         node_incomplete(arc, cnnarc, area, cnnarea, arc_list, arc_area)
-            #     else
-            #         ## node complete
-            #         node_complete(arc, cnnarc, area, cnnarea, arc_list, area_list) 
-            #     end
-            # end
- 
            
         end
 
