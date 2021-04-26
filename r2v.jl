@@ -77,6 +77,7 @@ function write_arc(arc_file::AbstractString, arc::Arc, sep=",", subsep=" ")
             else
                 arc.dne == nothing ? print(pb, "\n") : (print(pb, sep); write_vertex(pb, arc.dne, subsep); print(pb, "\n") )
             end 
+            (bytesavailable(pb) > (16*1024)) && write(io, take!(pb))  # just in case
         end
 
         write(io, take!(pb))
