@@ -60,8 +60,7 @@ end
 #
 write_vertex(io::IO, vec::Tuple{Int64, Int64}, csep=' ') = print(io, vec[1], csep, vec[2])
 
-#TODO
-function write_arc(arc_file, arc, sep, subsep) 
+function write_arc(arc_file::AbstractString, arc::Arc, sep=",", subsep=" ") 
     open(arc_file, "a+") do io
         pb = PipeBuffer()
 
@@ -76,17 +75,10 @@ function write_arc(arc_file, arc, sep, subsep)
             if i != lastr
                 print(pb, sep)
             else
-                arc.dne == nothing ? print(pb, "\n") : write_vertex(pb, arc.dne, subsep); print(pb, "\n")
+                arc.dne == nothing ? print(pb, "\n") : (print(pb, sep); write_vertex(pb, arc.dne, subsep); print(pb, "\n") )
             end 
         end
 
-#        if arc.dne != nothing
-#            write_vertex(pb, arc.dne, subsep)
-#        end
-#
-#        print(pb, "\n")
-#
-        
         write(io, take!(pb))
     end
         
