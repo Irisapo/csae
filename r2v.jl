@@ -34,20 +34,18 @@ DirRD = Dir("down", [:DirDR, :DirD])
 #TODO: vertex coordinate should be in tuple instead of array!!
 
 mutable struct Arc
-    #=
-    Only 1d-array can be appended, so use array-of-array to store vertex coordinates 
+    #= Only 1d-array can be appended, so use array-of-array to store vertex coordinates 
     each Vertex is an Array{Int64, 1}
     Node info is saved the same as Vertex, 
-    but Node is not in the `vertices` to indicates its different feature as start/end point
-    =# 
+    but Node is not in the `vertices` to indicates its different feature as start/end point =# 
 
-    vertices::Array{Array{Int64,1}}
+    vertices::Array{Tuple{Int64,Int64}}
 
-    start::Union{Array{Int64, 1}, Nothing} # start Node (represented by its position coordinates). 
-    dne::Union{Array{Int64, 1}, Nothing}  # end Node's coordinates if any
+    start::Union{Tuple{Int64, Int64}, Nothing} # start Node (represented by its position coordinates). 
+    dne::Union{Tuple{Int64, Int64}, Nothing}  # end Node's coordinates if any
 
     # Whenever changing an Arc, change its linkArc's linkArc, its corsp Area's arm (self-pointer)
-    linkArc::Union{Nothing, Tuple{Array{Int64, 1}, Symbol}}    # Symbol is currentDir
+    linkArc::Union{Nothing, Tuple{Tuple{Int64, Int64}, Symbol}}    # Symbol is currentDir
 
     linkArea::Int64
 end
@@ -55,20 +53,60 @@ end
 mutable struct Area 
 	color::UnionAll
 	arm::Array{Tuple{Array{Int64, 1}, Symbol}, 1}
-    
 end
 
+
+##############
+#
+write_vertex(io::IO, vec::Tuple{Int64, Int64}, csep=' ') = print(io, vec[1], csep, vec[2])
+
+#TODO
+function write_arc(arc_file, arc, sep, subsep) 
+    open(arc_file, "a+") do io
+        pb = PipeBuffer()
+
+        if arc.start != nothing
+            write_vertex(pb, arc.start, subsep)
+            print(pb, sep)
+        end
+
+        lastr = last(axes(arc.vertices, 1))
+        for i = axes(arc.vertices, 1)
+            write_vertex(pb, arc.vertices[i], subsep)
+            if i != lastr
+                print(pb, sep)
+            else
+                arc.dne == nothing ? print(pb, "\n") : write_vertex(pb, arc.dne, subsep); print(pb, "\n")
+            end 
+        end
+
+#        if arc.dne != nothing
+#            write_vertex(pb, arc.dne, subsep)
+#        end
+#
+#        print(pb, "\n")
+#
+        
+        write(io, take!(pb))
+    end
+        
+end
+
+
+#
+##############
 area_count=0
 area_list=Dic{Int, Area}()
 
 arc_list=Dirc{Tuple{Array{Int64, 1}, Symbol}, Arc}()
 # CAN NOT use position alone as key. not unique.
 
-
 function node_complete(arc::T, cnnarc::T, area::T2, cnnarea::T2, arc_list::Dict, area_list::Dict) where {T<:Tuple{Array{Int64, 1}, Symbol}, T2<:Int64}
     append!(arc_list[cnnarc].vertices, reverse(arc_list[arc].vertices))
     arc_list[cnnarc].dne = arc_list[arc].start # end node 
     #TODO:write(arc_list[cnnarc], "completed_arc.csv")
+    write(completed_arc, arc_list[cnnarc])
+
     pop!(arc_list, arc)
     pop!(arc_list, cnnarc)
 
