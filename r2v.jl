@@ -117,19 +117,18 @@ arc_list=Dirc{Tuple{Array{Int64, 1}, Symbol}, Arc}()
 function node_complete(arc::T, cnnarc::T, area::T2, cnnarea::T2, arc_list::Dict, area_list::Dict) where {T<:Tuple{Array{Int64, 1}, Symbol}, T2<:Int64}
     append!(arc_list[cnnarc].vertices, reverse(arc_list[arc].vertices))
     arc_list[cnnarc].dne = arc_list[arc].start # end node 
-    #TODO:write(arc_list[cnnarc], "completed_arc.csv")
-    write(completed_arc, arc_list[cnnarc])
+    write_arc("completed_arc.csv", arc_list[annarc], sep=",", subsep=" ") 
 
     pop!(arc_list, arc)
     pop!(arc_list, cnnarc)
 
     if length(area_list[area].arm) == 0
-        #TODO:write(area_list[area], "completed_area.csv")
+        write_area("completed_area.csv", area_list, area, sep="\n", subsep=",")
         pop!(area_list, area)
     end
     #TODO: But need to check if this area still exists first 
     if length(area_list[cnnarea].arm) == 0
-        #TODO:write(area_list[cnnarea], "completed_area.csv")
+        write_area("completed_area.csv", area_list, cnnarea, sep="\n", subsep=",")
         pop!(area_list, cnnarea)
     end
 
@@ -138,17 +137,17 @@ end
 function link_complete(arc::T, cnnarc::T, area::T2, cnnarea::T2, arc_list::Dict, area_list::Dict) where {T<:Tuple{Array{Int64, 1}, Symbol}, T2<:Int64}
     pop!(area_list[area].arm, area);  pop!(area_list[cnnarea].arm, cnnarea)
     if length(area_list[area].arm) == 0:
-        #TODO:write(area_list[area], "completed_area.csv")
+        write_area("completed_area.csv", area_list, area, sep="\n", subsep=",")
         pop!(area_list, area)
     end
     #TODO: But need to check if this area still exists first 
     if length(area_list[cnnarea].arm) == 0:
-        #TODO:write(area_list[cnnarea], "completed_area.csv")
+        write_area("completed_area.csv", area_list, cnnarea, sep="\n", subsep=",")
         pop!(area_list, cnnarea)
     end
     
     append!(arc_list[cnnarc].vertices, reverse(arc_list[arc].vertices))
-    #TODO:write(arc_list[cnnarc], "completed_arc.csv")
+    write_arc("completed_arc.csv", arc_list[annarc], sep=",", subsep=" ") 
     pop!(arc_list, arc);  pop!(arc_list, cnnarc)
 
 end
@@ -190,16 +189,16 @@ function node_complete(arc::T, cnnarc::T, area::T2, cnnarea::T2, arc_list::Dict,
     pop!(arc_list, arc)
     pop!(area_list[area].arm, arc)
 
-    #TODO write(arc_list[cnnarc], "complete_arc.csv")
+    write_arc("completed_arc.csv", arc_list[annarc], sep=",", subsep=" ") 
     pop!(arc_list, cnnarc)
     pop!(area_list[cnnarea].arm, cnnarc)
 
     if length(area_list[area].arm) == 0
-        #TODO write(area_list[area], "complete_area.csv")
+        write_area("completed_area.csv", area_list, area, sep="\n", subsep=",")
         pop!(area_list, area)
     end
     if length(area_list[cnnarea].arm) == 0
-        # TODO write(area_list[cnnarea], "complete_area.csv")
+        write_area("completed_area.csv", area_list, cnnarea, sep="\n", subsep=",")
         pop!(area_liat, cnnarea)
     end
 
@@ -234,12 +233,12 @@ end
 function node_end(node::Array{Int64, 1}, arc::Tuple{Array{Int64, 1}, Symbol}, area::Int64, arc_list::Dict, area_list::Dict)
 
     arc_list[arc].dne = node 
-    #TODO: write(arc_list[arc], "complete_arc.csv")
+    write_arc("completed_arc.csv", arc_list[arc], sep=",", subsep=" ") 
     pop!(arc_list, arc)
 
     pop!(area_list[area].arm, arc)
     if length(area_list[area].arm) == 0
-        #TODO: write(area_list[area], "compelte_area.csv")
+        write_area("completed_area.csv", area_list, area, sep="\n", subsep=",")
         pop!(area_list, area)
     end
 end
