@@ -31,12 +31,10 @@ DirRD = Dir("down", [:DirDR, :DirD])
 # Relationships among directions 
 ########################################
 
-#TODO: vertex coordinate should be in tuple instead of array!!
-
 mutable struct Arc
-    #= Only 1d-array can be appended, so use array-of-array to store vertex coordinates 
-    each Vertex is an Array{Int64, 1}
-    Node info is saved the same as Vertex, 
+    #= Only 1d-array can be appended, so use array-of-tuple to store vertex coordinates 
+    each Vertex is an Tuple{Int64, Int64}
+    Node info is saved the same way as for Vertex, 
     but Node is not in the `vertices` to indicates its different feature as start/end point =# 
 
     vertices::Array{Tuple{Int64,Int64}}
@@ -56,8 +54,9 @@ mutable struct Area
 end
 
 
-##############
-#
+##################
+# Export to files 
+##################
 write_vertex(io::IO, vec::Tuple{Int64, Int64}, csep=' ') = print(io, vec[1], csep, vec[2])
 
 function write_arc(arc_file::AbstractString, arc::Arc, sep=",", subsep=" ") 
@@ -106,48 +105,39 @@ function write_area(area_file::AbstractString, area_list::Dict, area_name::Int64
     end
 end
 
-#
-##############
-area_count=0
-area_list=Dic{Int, Area}()
-
-arc_list=Dirc{Tuple{Tuple{Int64, Int64}, Symbol}, Arc}()
-# CAN NOT use position alone as key. not unique.
-
-function node_complete(arc::T, cnnarc::T, area::T2, cnnarea::T2, arc_list::Dict, area_list::Dict) where {T<:Tuple{Tuple{Int64, Int64}, Symbol}, T2<:Int64}
+##################
+# Export to files 
+##################
+function node_complete(arc::T, cnnarc::T, area::T2, cnnarea::T2, arc_list::Dict, area_list::Dict, arc_file::AbstractString, area_file::AbstractString) where {T<:Tuple{Tuple{Int64, Int64}, Symbol}, T2<:Int64}
     append!(arc_list[cnnarc].vertices, reverse(arc_list[arc].vertices))
     arc_list[cnnarc].dne = arc_list[arc].start # end node 
-    write_arc("completed_arc.csv", arc_list[annarc], sep=",", subsep=" ") 
+    write_arc(arc_file, arc_list[annarc], sep=",", subsep=" ") 
 
     pop!(arc_list, arc)
     pop!(arc_list, cnnarc)
 
     if length(area_list[area].arm) == 0
-        write_area("completed_area.csv", area_list, area, sep="\n", subsep=",")
+        write_area(area_file, area_list, area, sep="\n", subsep=",")
         pop!(area_list, area)
     end
-    #TODO: But need to check if this area still exists first 
-    if length(area_list[cnnarea].arm) == 0
-        write_area("completed_area.csv", area_list, cnnarea, sep="\n", subsep=",")
-        pop!(area_list, cnnarea)
-    end
+#    #No need to check cnnarea b/c it is the same as area
+#    #    if length(area_list[cnnarea].arm) == 0
+#        write_area(area_file, area_list, cnnarea, sep="\n", subsep=",")
+#        pop!(area_list, cnnarea)
+#    end
 
 end
 
-function link_complete(arc::T, cnnarc::T, area::T2, cnnarea::T2, arc_list::Dict, area_list::Dict) where {T<:Tuple{Tuple{Int64, Int64}, Symbol}, T2<:Int64}
+function link_complete(arc::T, cnnarc::T, area::T2, cnnarea::T2, arc_list::Dict, area_list::Dict, arc_file::AbstractString, area_file::AbstractString) where {T<:Tuple{Tuple{Int64, Int64}, Symbol}, T2<:Int64}
     pop!(area_list[area].arm, area);  pop!(area_list[cnnarea].arm, cnnarea)
     if length(area_list[area].arm) == 0:
-        write_area("completed_area.csv", area_list, area, sep="\n", subsep=",")
+        write_area(area_file, area_list, area, sep="\n", subsep=",")
         pop!(area_list, area)
     end
-    #TODO: But need to check if this area still exists first 
-    if length(area_list[cnnarea].arm) == 0:
-        write_area("completed_area.csv", area_list, cnnarea, sep="\n", subsep=",")
-        pop!(area_list, cnnarea)
-    end
-    
+    #No need to check cnnarea b/c it is the same as area
+   
     append!(arc_list[cnnarc].vertices, reverse(arc_list[arc].vertices))
-    write_arc("completed_arc.csv", arc_list[annarc], sep=",", subsep=" ") 
+    write_arc(arc_file, arc_list[annarc], sep=",", subsep=" ") 
     pop!(arc_list, arc);  pop!(arc_list, cnnarc)
 
 end
@@ -181,7 +171,7 @@ function node_incomplete(node_arc::T, link_arc::T, node_area::T2, link_area::T2,
 end
 
 
-function node_complete(arc::T, cnnarc::T, area::T2, cnnarea::T2, arc_list::Dict, area_list::Dict) where {T<:Tuple{Tuple{Int64, Int64}, Symbol}, T2<:Int64}
+function node_complete(arc::T, cnnarc::T, area::T2, cnnarea::T2, arc_list::Dict, area_list::Dict, arc_file::AbstractString, area_file::AbstractString) where {T<:Tuple{Tuple{Int64, Int64}, Symbol}, T2<:Int64}
     
     append!(arc_list[cnnarc].vertices, reverse(arc_list[arc].vertices))
     arc_list[cnnarc].dne = arc_list[arc].start
@@ -189,28 +179,28 @@ function node_complete(arc::T, cnnarc::T, area::T2, cnnarea::T2, arc_list::Dict,
     pop!(arc_list, arc)
     pop!(area_list[area].arm, arc)
 
-    write_arc("completed_arc.csv", arc_list[annarc], sep=",", subsep=" ") 
+    write_arc(arc_file, arc_list[annarc], sep=",", subsep=" ") 
     pop!(arc_list, cnnarc)
     pop!(area_list[cnnarea].arm, cnnarc)
 
     if length(area_list[area].arm) == 0
-        write_area("completed_area.csv", area_list, area, sep="\n", subsep=",")
+        write_area(area_file, area_list, area, sep="\n", subsep=",")
         pop!(area_list, area)
     end
     if length(area_list[cnnarea].arm) == 0
-        write_area("completed_area.csv", area_list, cnnarea, sep="\n", subsep=",")
+        write_area(area_file, area_list, cnnarea, sep="\n", subsep=",")
         pop!(area_liat, cnnarea)
     end
 
 end
 
-function arc_connect(arc::T, cnnarc::T, area::T2, cnnarea::T2, arc_list::Dict, area_list::Dict) where {T<:Tuple{Tuple{Int64, Int64}, Symbol}, T2<:Int64}
+function arc_connect(arc::T, cnnarc::T, area::T2, cnnarea::T2, arc_list::Dict, area_list::Dict, arc_file::AbstractString, area_file::AbstractString) where {T<:Tuple{Tuple{Int64, Int64}, Symbol}, T2<:Int64}
 
     if arc_list[arc].linkArc != nothing
         if arc_list[cnnarc].linkArc != nothing
             ## linked complete
             if arc_list[cnnarc].linkArc == arc && arc_list[arc].linkArc == cnnarc
-                link_complete(arc, cnnarc, area, cnnarea, arc_list, area_list)
+                link_complete(arc, cnnarc, area, cnnarea, arc_list, area_list, arc_file, area_file)
             end
         else 
             # cnnarc has start node
@@ -224,21 +214,21 @@ function arc_connect(arc::T, cnnarc::T, area::T2, cnnarea::T2, arc_list::Dict, a
             node_incomplete(arc, cnnarc, area, cnnarea, arc_list, arc_area)
         else
             ## node complete
-            node_complete(arc, cnnarc, area, cnnarea, arc_list, area_list) 
+            node_complete(arc, cnnarc, area, cnnarea, arc_list, area_list, arc_file, area_file) 
         end
     end
 end
 
 
-function node_end(node::Array{Int64, 1}, arc::Tuple{Tuple{Int64, Int64}, Symbol}, area::Int64, arc_list::Dict, area_list::Dict)
+function node_end(node::Array{Int64, 1}, arc::Tuple{Tuple{Int64, Int64}, Symbol}, area::Int64, arc_list::Dict, area_list::Dict, arc_file::AbstractString, area_file::AbstractString)
 
     arc_list[arc].dne = node 
-    write_arc("completed_arc.csv", arc_list[arc], sep=",", subsep=" ") 
+    write_arc(arc_file, arc_list[arc], sep=",", subsep=" ") 
     pop!(arc_list, arc)
 
     pop!(area_list[area].arm, arc)
     if length(area_list[area].arm) == 0
-        write_area("completed_area.csv", area_list, area, sep="\n", subsep=",")
+        write_area(area_file, area_list, area, sep="\n", subsep=",")
         pop!(area_list, area)
     end
 end
@@ -256,12 +246,12 @@ function link_flip(node::Array{Int64,1}, arc::Tuple{Tuple{Int64, Int64}, Symbol}
 
 end
 
-function node_connect(node::Array{Int64,1}, arc::Tuple{Tuple{Int64, Int64}, Symbol}, area::Int64, arc_list::Dict, area_list::Dict)
+function node_connect(node::Array{Int64,1}, arc::Tuple{Tuple{Int64, Int64}, Symbol}, area::Int64, arc_list::Dict, area_list::Dict, arc_file::AbstractString, area_file::AbstractString)
     # node end 
     if arc_list[arc].start != nothing
 
         area = arc_list[arc].linkArea
-        node_end(node, arc, area, arc_list, area_list)
+        node_end(node, arc, area, arc_list, area_list, arc_file, area_file)
 
     elseif arc_list[arc].linkArc != nothing
     # link flip
@@ -274,199 +264,210 @@ function node_connect(node::Array{Int64,1}, arc::Tuple{Tuple{Int64, Int64}, Symb
 end
 
 
-# Given a 2x2 pixel block `pb`, its position is (c_row, c_column)
-flag2 = pb[4] == pb[2]; flag3 = pb[4] == pb[3]
-if !flag2 && !flag3
-    area_count += 1
 
-    if pb[2] == pb[1] == pb[3]
-    # --
-    # -
-    # create 2 linked arcs 
-    # create a new area
+area_count=0
+area_list=Dic{Int, Area}()
 
-        arc_list[((c_row, c_column), :DirR)] = Arc([(c_row, c_column)], nothing, nothing, ((c_row, c_column), :DirD), area_count)
-        arc_list[((c_row, c_column), :DirD)] = Arc([(c_row, c_column)], nothing, nothing, ((c_row, c_column), :DirR), area_count)
-        area_list[area_count] = Area(pb[4], [((c_row, c_column), :DirR), ((c_row, c_column), :DirD)])
+arc_list=Dirc{Tuple{Tuple{Int64, Int64}, Symbol}, Arc}()
+# CAN NOT use position alone as key. not unique.
 
-        # connect arc if necessary
-        if haskey(arc_list, ((c_row-1, c_column+1), :DirD)) \xor haskey(arc_list, ((c_row-1, c_column+1), :DirRD))
-            cnnarc = haskey(arc_list, ((c_row-1, c_column+1), :DirD)) ? ((c_row-1, c_column+1), :DirD) : ((c_row-1, c_column+1), :DirRD)
-            cnnarea = arc_list[cnnarc].linkArea
+#TODO: area_count where to start
+function handle_event(pb, c_row::Int64, c_column::Int64, area_count::Int64, arc_list, area_list, arc_file, area_file) 
 
-            arc = ((c_row, c_column), :DirR)
-            area = area_count
+    # Given a 2x2 pixel block `pb`, its position is (c_row, c_column)
+    flag2 = pb[4] == pb[2]; flag3 = pb[4] == pb[3]
+    if !flag2 && !flag3
+        area_count += 1
 
-            arc_connect(arc, cnnarc, area, cnnarea, arc_list, area_list) 
-        end
+        if pb[2] == pb[1] == pb[3]
+        # --
+        # -
+        # create 2 linked arcs 
+        # create a new area
 
-    else
-    # create node and create 2 arcs,
-    # create a new area
-        arc_list[((c_row, c_column), :DirR)] = Arc([], (c_row, c_column), nothing,  area_count)
-        arc_list[((c_row, c_column), :DirD)] = Arc([], (c_row, c_column), nothing,  area_count)
-        area_list[area_count] = Area(pb[4], [((c_row, c_column), :DirR), ((c_row, c_column), :DirD)])
+            arc_list[((c_row, c_column), :DirR)] = Arc([(c_row, c_column)], nothing, nothing, ((c_row, c_column), :DirD), area_count)
+            arc_list[((c_row, c_column), :DirD)] = Arc([(c_row, c_column)], nothing, nothing, ((c_row, c_column), :DirR), area_count)
+            area_list[area_count] = Area(pb[4], [((c_row, c_column), :DirR), ((c_row, c_column), :DirD)])
 
-        map((((c_row-1, c_column+1), :DirD), ((c_row-1, c_column+1), :DirRD),((c_row, c_column-1), :DirR),((c_row, c_column-1), :DirDR))) do arc
-            if haskey(arc_list, arc)
-                
-                area = arc_list[arc].linkArea
-                node_connect((c_row, c_column), arc, area, arc_list, area_list)
-           end
-        end
+            # connect arc if necessary
+            if haskey(arc_list, ((c_row-1, c_column+1), :DirD)) \xor haskey(arc_list, ((c_row-1, c_column+1), :DirRD))
+                cnnarc = haskey(arc_list, ((c_row-1, c_column+1), :DirD)) ? ((c_row-1, c_column+1), :DirD) : ((c_row-1, c_column+1), :DirRD)
+                cnnarea = arc_list[cnnarc].linkArea
 
-    end
+                arc = ((c_row, c_column), :DirR)
+                area = area_count
 
-    # connect arc w/ arc_list[((c_row, c_column), :DirR)] if necessary
-    @assert !haskey(arc_list, ((c_row-1, c_column+1), :DirD)) || !haskey(arc_list, ((c_row-1, c_column+1), :DirRD))
-    arc = ((c_row, c_column), :DirR)
-    area = area_count
-    map((((c_row-1, c_column+1), :DirD), ((c_row-1, c_column+1), :DirRD), nothing)) do cnnarc
-            if haskey(arc_list, cnnarc)
-                cnnarea = arc_list[cnnarc].linkArc
                 arc_connect(arc, cnnarc, area, cnnarea, arc_list, area_list) 
             end
-    end
 
-    
+        else
+        # create node and create 2 arcs,
+        # create a new area
+            arc_list[((c_row, c_column), :DirR)] = Arc([], (c_row, c_column), nothing,  area_count)
+            arc_list[((c_row, c_column), :DirD)] = Arc([], (c_row, c_column), nothing,  area_count)
+            area_list[area_count] = Area(pb[4], [((c_row, c_column), :DirR), ((c_row, c_column), :DirD)])
 
-elseif flag2 && flag3
-    if  pb[1] != pb[2]
-        #   -
-        #  --
-        if haskey(arc_list, ((c_row, c_column-1), :DirR)) \xor haskey(arc_list, ((c_row, c_column-1), :DirDR))
-            arc=haskey(arc_list, ((c_row, c_column-1), :DirR)) ? ((c_row, c_column-1), :DirR): ((c_row, c_column-1), :DirDR) 
+            map((((c_row-1, c_column+1), :DirD), ((c_row-1, c_column+1), :DirRD),((c_row, c_column-1), :DirR),((c_row, c_column-1), :DirDR))) do arc
+                if haskey(arc_list, arc)
+                    
+                    area = arc_list[arc].linkArea
+                    node_connect((c_row, c_column), arc, area, arc_list, area_list)
+               end
+            end
 
-            push!(arc_list[arc].vertices, [c_row, c_row])
-
-
-            # check with "down" dir at (c_row-1, c_column) for connection
-            # Must Have An Arc To Connect
-            @assert haskey(arc_list, ((c_row-1, c_column), :DirD)) \xor haskey(arc_list, ((c_row-1, c_column), :DirRD))
-            cnnarc = haskey(arc_list, ((c_row-1, c_column), :DirD)) ? ((c_row-1, c_column), :DirD): ((c_row-1, c_column), :DirRD)
-            cnnarea = arc_list[cnnarc].linkArea
-
-            area=arc_list[arc].linkArea
-
-
-            arc_connect(arc, cnnarc, area, cnnarea, arc_list, area_list) 
-           
         end
 
-    end
+        # connect arc w/ arc_list[((c_row, c_column), :DirR)] if necessary
+        @assert !haskey(arc_list, ((c_row-1, c_column+1), :DirD)) || !haskey(arc_list, ((c_row-1, c_column+1), :DirRD))
+        arc = ((c_row, c_column), :DirR)
+        area = area_count
+        map((((c_row-1, c_column+1), :DirD), ((c_row-1, c_column+1), :DirRD), nothing)) do cnnarc
+                if haskey(arc_list, cnnarc)
+                    cnnarea = arc_list[cnnarc].linkArc
+                    arc_connect(arc, cnnarc, area, cnnarea, arc_list, area_list) 
+                end
+        end
 
-elseif flag2 && !flag3
-    if  pb[1] == pb[3]
-        #   --
-        #   **  
-        @assert haskey(arc_list, ((c_row, c_column-1),:DirR)) \xor haskey(arc_list, ((c_row, c_column-1),:DirDR))
-        arc = haskey(arc_list, ((c_row, c_column-1),:DirR)) ? ((c_row, c_column-1),:DirR): ((c_row, c_column-1),:DirDR)
-        push!(arc_list[arc].vertices, (c_row, c_column))
-
-
-        # connect w/ down at (c_row-1, c_column+1) if possible
-        if haskey(arc_list, ((c_row-1, c_column+1), :DirD)) \xor haskey(arc_list, ((c_row-1, c_column+1), :DirRD))
-            cnnarc = haskey(arc_list, ((c_row-1, c_column+1), :DirD)) ? ((c_row-1, c_column+1), :DirD): ((c_row-1, c_column+1), :DirRD)
-            cnnarea = arc_list[cnnarc].linkArea
-
-            area = arc_list[arc].linkArea
-            
-            # connect scenarios
-            arc_connect(arc, cnnarc, area, cnnarea, arc_list, area_list)
         
-        else
-        # update arc key
-            arc_list[((c_row, c_column),:DirR)] = arc_list[arc]
-            pop!(arc_list, arc)
+
+    elseif flag2 && flag3
+        if  pb[1] != pb[2]
+            #   -
+            #  --
+            if haskey(arc_list, ((c_row, c_column-1), :DirR)) \xor haskey(arc_list, ((c_row, c_column-1), :DirDR))
+                arc=haskey(arc_list, ((c_row, c_column-1), :DirR)) ? ((c_row, c_column-1), :DirR): ((c_row, c_column-1), :DirDR) 
+
+                push!(arc_list[arc].vertices, [c_row, c_row])
+
+
+                # check with "down" dir at (c_row-1, c_column) for connection
+                # Must Have An Arc To Connect
+                @assert haskey(arc_list, ((c_row-1, c_column), :DirD)) \xor haskey(arc_list, ((c_row-1, c_column), :DirRD))
+                cnnarc = haskey(arc_list, ((c_row-1, c_column), :DirD)) ? ((c_row-1, c_column), :DirD): ((c_row-1, c_column), :DirRD)
+                cnnarea = arc_list[cnnarc].linkArea
+
+                area=arc_list[arc].linkArea
+
+
+                arc_connect(arc, cnnarc, area, cnnarea, arc_list, area_list) 
+               
+            end
+
         end
 
-    elseif pb[1] == pb[2]
-        #   -
-        #   --
-        @assert haskey(arc_list, ((c_row-1, c_column),:DirD)) \xor haskey(arc_list, ((c_row-1, c_column),:DirRD))
-        arc = haskey(arc_list, ((c_row-1, c_column),:DirD))? ((c_row-1, c_column),:DirD): ((c_row-1, c_column),:DirRD)
-        push!(arc_list[arc].vertices, (c_row, c_column))
+    elseif flag2 && !flag3
+        if  pb[1] == pb[3]
+            #   --
+            #   **  
+            @assert haskey(arc_list, ((c_row, c_column-1),:DirR)) \xor haskey(arc_list, ((c_row, c_column-1),:DirDR))
+            arc = haskey(arc_list, ((c_row, c_column-1),:DirR)) ? ((c_row, c_column-1),:DirR): ((c_row, c_column-1),:DirDR)
+            push!(arc_list[arc].vertices, (c_row, c_column))
 
-        # conect w/ down at (c_row-1, c_column+1) if possible
-        if haskey(arc_list, ((c_row-1, c_column+1), :DirD)) \xor haskey(arc_list, ((c_row-1, c_column+1), :DirRD))
-            cnnarc = haskey(arc_list, ((c_row-1, c_column+1), :DirD)) ? ((c_row-1, c_column+1), :DirD): ((c_row-1, c_column+1), :DirRD)
-            cnnarea = arc_list[cnnarc].linkArea
 
-            area = arc_list[arc].linkArea
-
-            # connect scenarios
-            arc_connect(arc, cnnarc, area, cnnarea, arc_list, area_list)
-
-        else
-        # update arc
-            arc_list[((c_row, c_column),:DirR)] = arc_list[arc]
-            pop!(arc_list, arc)
-        end
-
-    else
-        #   #*
-        #   --
-        @assert haskey(arc_list, ((c_row-1, c_column), :DirD)) \xor haskey(arc_list, ((c_row-1, c_column), :DirRD))
-        areaarc = haskey(arc_list, ((c_row-1, c_column), :DirD)) ? ((c_row-1, c_column), :DirD): ((c_row-1, c_column), :DirRD)
-        area = arc_list[areaarc].linkArea
-        # create new arc
-        arc_list[((c_row, c_column), :DirR)] = Arc([], (c_row, c_column), nothing,  area)         
-        push!(area_list[area].arm, ((c_row, c_column), :DirR))
-
-        # connect w/ arcs if necessary 
-        map((((c_row-1, c_column), :DirD), ((c_row-1, c_column), :DirRD), ((c_row, c_column-1), :DirR), ((c_row-1, c_column), :DirDR))) do arc
-            if haskey(arc_list, arc) 
+            # connect w/ down at (c_row-1, c_column+1) if possible
+            if haskey(arc_list, ((c_row-1, c_column+1), :DirD)) \xor haskey(arc_list, ((c_row-1, c_column+1), :DirRD))
+                cnnarc = haskey(arc_list, ((c_row-1, c_column+1), :DirD)) ? ((c_row-1, c_column+1), :DirD): ((c_row-1, c_column+1), :DirRD)
+                cnnarea = arc_list[cnnarc].linkArea
 
                 area = arc_list[arc].linkArea
-                node_connect((c_row, c_column), arc, area, arc_list, area_list)
+                
+                # connect scenarios
+                arc_connect(arc, cnnarc, area, cnnarea, arc_list, area_list)
+            
+            else
+            # update arc key
+                arc_list[((c_row, c_column),:DirR)] = arc_list[arc]
+                pop!(arc_list, arc)
             end
-        end
 
+        elseif pb[1] == pb[2]
+            #   -
+            #   --
+            @assert haskey(arc_list, ((c_row-1, c_column),:DirD)) \xor haskey(arc_list, ((c_row-1, c_column),:DirRD))
+            arc = haskey(arc_list, ((c_row-1, c_column),:DirD))? ((c_row-1, c_column),:DirD): ((c_row-1, c_column),:DirRD)
+            push!(arc_list[arc].vertices, (c_row, c_column))
 
-    end
-elseif !flag2 && flag3
-    if  pb[1] == pb[2]
-        #   -*
-        #   -* 
-        @assert haskey(arc_list, ((c_row-1, c_column), :DirD)) \xor haskey(arc_list, ((c_row-1, c_column), :DirRD))
-        arc = haskey(arc_list, ((c_row-1, c_column), :DirD)) ?  ((c_row-1, c_column), :DirD): ((c_row-1, c_column), :DirRD)
-        push!(arc_list[arc].vertices, (c_row, c_column))
-
-        arc_list[((c_row, c_column), :DirD)] = arc_list[arc]
-        pop!(arc_list, arc)
-
-    end
-
-    elseif pb[1] == pb[3]
-        #   --
-        #    -
-        @assert haskey(arc_list, ((c_row, c_column-1), :DirR)) \xor haskey(arc_list, ((c_row, c_column-1), :DirDR))
-        arc = haskey(arc_list, ((c_row, c_column-1), :DirR)) ? ((c_row, c_column-1), :DirR): ((c_row, c_column-1), :DirDR)
-        push!(arc_list[arc].vertices, (c_row, c_column))
-
-        arc_list[((c_row, c_column), :DirD)] = arc_list[arc]
-        pop!(arc_list, arc)
-    else
-        #   #-
-        #   *-
-        @assert haskey(arc_list, ((c_row, c_column-1), :DirR)) \xor haskey(arc_list, ((c_row, c_column-1), :DirDR))
-        areaarc = haskey(arc_list, ((c_row, c_column-1), :DirR)) ? ((c_row, c_column-1), :DirR): ((c_row, c_column-1), :DirDR)
-        area = arc_list[areaarc].linkArea
-        # create new arc
-        arc_list[((c_row, c_column), :DirD)] = Arc([], (c_row, c_column), nothing,  area)         
-        push!(area_list[area].arm, ((c_row, c_column), :DirD))
-
-        # connect w/ arcs if necessary 
-        map((((c_row-1, c_column), :DirD), ((c_row-1, c_column), :DirRD), ((c_row, c_column-1), :DirR), ((c_row-1, c_column), :DirDR))) do arc
-            if haskey(arc_list, arc) 
+            # conect w/ down at (c_row-1, c_column+1) if possible
+            if haskey(arc_list, ((c_row-1, c_column+1), :DirD)) \xor haskey(arc_list, ((c_row-1, c_column+1), :DirRD))
+                cnnarc = haskey(arc_list, ((c_row-1, c_column+1), :DirD)) ? ((c_row-1, c_column+1), :DirD): ((c_row-1, c_column+1), :DirRD)
+                cnnarea = arc_list[cnnarc].linkArea
 
                 area = arc_list[arc].linkArea
-                node_connect((c_row, c_column), arc, area, arc_list, area_list)
+
+                # connect scenarios
+                arc_connect(arc, cnnarc, area, cnnarea, arc_list, area_list)
+
+            else
+            # update arc
+                arc_list[((c_row, c_column),:DirR)] = arc_list[arc]
+                pop!(arc_list, arc)
             end
+
+        else
+            #   #*
+            #   --
+            @assert haskey(arc_list, ((c_row-1, c_column), :DirD)) \xor haskey(arc_list, ((c_row-1, c_column), :DirRD))
+            areaarc = haskey(arc_list, ((c_row-1, c_column), :DirD)) ? ((c_row-1, c_column), :DirD): ((c_row-1, c_column), :DirRD)
+            area = arc_list[areaarc].linkArea
+            # create new arc
+            arc_list[((c_row, c_column), :DirR)] = Arc([], (c_row, c_column), nothing,  area)         
+            push!(area_list[area].arm, ((c_row, c_column), :DirR))
+
+            # connect w/ arcs if necessary 
+            map((((c_row-1, c_column), :DirD), ((c_row-1, c_column), :DirRD), ((c_row, c_column-1), :DirR), ((c_row-1, c_column), :DirDR))) do arc
+                if haskey(arc_list, arc) 
+
+                    area = arc_list[arc].linkArea
+                    node_connect((c_row, c_column), arc, area, arc_list, area_list)
+                end
+            end
+
+
+        end
+    elseif !flag2 && flag3
+        if  pb[1] == pb[2]
+            #   -*
+            #   -* 
+            @assert haskey(arc_list, ((c_row-1, c_column), :DirD)) \xor haskey(arc_list, ((c_row-1, c_column), :DirRD))
+            arc = haskey(arc_list, ((c_row-1, c_column), :DirD)) ?  ((c_row-1, c_column), :DirD): ((c_row-1, c_column), :DirRD)
+            push!(arc_list[arc].vertices, (c_row, c_column))
+
+            arc_list[((c_row, c_column), :DirD)] = arc_list[arc]
+            pop!(arc_list, arc)
+
         end
 
+        elseif pb[1] == pb[3]
+            #   --
+            #    -
+            @assert haskey(arc_list, ((c_row, c_column-1), :DirR)) \xor haskey(arc_list, ((c_row, c_column-1), :DirDR))
+            arc = haskey(arc_list, ((c_row, c_column-1), :DirR)) ? ((c_row, c_column-1), :DirR): ((c_row, c_column-1), :DirDR)
+            push!(arc_list[arc].vertices, (c_row, c_column))
+
+            arc_list[((c_row, c_column), :DirD)] = arc_list[arc]
+            pop!(arc_list, arc)
+        else
+            #   #-
+            #   *-
+            @assert haskey(arc_list, ((c_row, c_column-1), :DirR)) \xor haskey(arc_list, ((c_row, c_column-1), :DirDR))
+            areaarc = haskey(arc_list, ((c_row, c_column-1), :DirR)) ? ((c_row, c_column-1), :DirR): ((c_row, c_column-1), :DirDR)
+            area = arc_list[areaarc].linkArea
+            # create new arc
+            arc_list[((c_row, c_column), :DirD)] = Arc([], (c_row, c_column), nothing,  area)         
+            push!(area_list[area].arm, ((c_row, c_column), :DirD))
+
+            # connect w/ arcs if necessary 
+            map((((c_row-1, c_column), :DirD), ((c_row-1, c_column), :DirRD), ((c_row, c_column-1), :DirR), ((c_row-1, c_column), :DirDR))) do arc
+                if haskey(arc_list, arc) 
+
+                    area = arc_list[arc].linkArea
+                    node_connect((c_row, c_column), arc, area, arc_list, area_list)
+                end
+            end
+
+
+        end
 
     end
 
 end
-
