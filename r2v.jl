@@ -51,8 +51,8 @@ mutable struct Arc
 end
 
 mutable struct Area 
-	color::UnionAll
-	arm::Array{Tuple{Array{Int64, 1}, Symbol}, 1}
+	color
+    arm::Array{Tuple{Tuple{Int64, Int64}, Symbol}}
 end
 
 
@@ -91,6 +91,20 @@ function write_arc(arc_file::AbstractString, arc::Arc, sep=",", subsep=" ")
         
 end
 
+
+function write_area(area_file::AbstractString, area_list::Dict, area_name::Int64, sep="\n", subsep=",")
+    open(area_file, "a+") do io
+
+        pb = PipeBuffer()
+        
+        #print(pb, "area_name", subsep, "color", "\n")
+
+        print(pb, string(area_name), subsep)
+        print(pb, area_list[area_name].color, sep)
+
+        write(io, take!(pb))
+    end
+end
 
 #
 ##############
