@@ -148,7 +148,6 @@ function node_incomplete(node_arc::T, link_arc::T, node_area::T2, link_area::T2,
     # cnn2area = arc_list[cnn2arc].area # # should be the same as `link_area`
     @assert arc_list[cnn2arc].linkArea == link_area
 
-
     # flip link_arc
     reverse!(arc_list[link_arc].vertices)
     append!(arc_list[link_arc].vertices, arc_list[cnn2arc].vertices)
@@ -243,7 +242,6 @@ function link_flip(node::Array{Int64,1}, arc::Tuple{Tuple{Int64, Int64}, Symbol}
     pop!(arc_list, arc)
     pop!(area_list[area].arm, arc)
 
-
 end
 
 function node_connect(node::Array{Int64,1}, arc::Tuple{Tuple{Int64, Int64}, Symbol}, area::Int64, arc_list::Dict, area_list::Dict, arc_file::AbstractString, area_file::AbstractString)
@@ -258,7 +256,6 @@ function node_connect(node::Array{Int64,1}, arc::Tuple{Tuple{Int64, Int64}, Symb
         area = arc_list[arc].linkArea
 
         link_flip(node, arc, cnnarc, area, arc_list, area_list) 
-
     end
 
 end
@@ -274,11 +271,8 @@ function handle_event(pb, c_row::Int64, c_column::Int64, area_count::Int64, arc_
         area_count += 1
 
         if pb[2] == pb[1] == pb[3]
-        # --
-        # -
-        # create 2 linked arcs 
-        # create a new area
-
+        # --       # create 2 linked arcs 
+        # -        # create a new area
             arc_list[((c_row, c_column), :DirR)] = Arc([(c_row, c_column)], nothing, nothing, ((c_row, c_column), :DirD), area_count)
             arc_list[((c_row, c_column), :DirD)] = Arc([(c_row, c_column)], nothing, nothing, ((c_row, c_column), :DirR), area_count)
             area_list[area_count] = Area(pb[4], [((c_row, c_column), :DirR), ((c_row, c_column), :DirD)])
@@ -429,7 +423,6 @@ function handle_event(pb, c_row::Int64, c_column::Int64, area_count::Int64, arc_
             arc_list[((c_row, c_column), :DirD)] = arc_list[arc]
             pop!(arc_list, arc)
 
-        end
 
         elseif pb[1] == pb[3]
             #   --
@@ -467,7 +460,9 @@ function handle_event(pb, c_row::Int64, c_column::Int64, area_count::Int64, arc_
     return area_count
 end
 
-function rr2v(png, arc_file, area_file)
+function rr2v(img, arc_file, area_file)
+
+    nR, nC = size(img) 
 
     area_count=0
     area_list=Dict{Int, Area}()
@@ -475,11 +470,19 @@ function rr2v(png, arc_file, area_file)
     arc_list=Dirc{Tuple{Tuple{Int64, Int64}, Symbol}, Arc}()
     # CAN NOT use position alone as key. not unique.
 
-    for 
-        #TODO pb, c_row, c_column
-        area_count = handle_event(pb, c_row, c_column, area_count, arc_list, area_list, arc_file, area_file)
+    for r_row in 1:(nR-1)
+        for r_column in 1:(nC-1)
+            area_count = handle_event(pb=img[c_row:(c_row+1), c_column:(c_column+1)], 
+                                      c_row, c_column, 
+                                      area_count, arc_list, area_list, 
+                                      arc_file, area_file)
+        end
     end
+
+    # to check/debug they should be empty Dict 
+    return area_list, arc_list
 
 end
 
 
+end
