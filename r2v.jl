@@ -1,9 +1,10 @@
 module R2V
 
-using FileIO, Images
+export rr2v
 
+#using FileIO, Images
 # load image
-img=load("polygon.png")
+#img=load("polygon.png")
 
 ########################################
 # Relationships among directions 
@@ -130,7 +131,7 @@ end
 
 function link_complete(arc::T, cnnarc::T, area::T2, cnnarea::T2, arc_list::Dict, area_list::Dict, arc_file::AbstractString, area_file::AbstractString) where {T<:Tuple{Tuple{Int64, Int64}, Symbol}, T2<:Int64}
     pop!(area_list[area].arm, area);  pop!(area_list[cnnarea].arm, cnnarea)
-    if length(area_list[area].arm) == 0:
+    if length(area_list[area].arm) == 0
         write_area(area_file, area_list, area, sep="\n", subsep=",")
         pop!(area_list, area)
     end
@@ -263,7 +264,7 @@ end
 
 
 
-function handle_event(pb, c_row::Int64, c_column::Int64, area_count::Int64, arc_list::Dict, area_list::Dict, arc_file::AbstractString, area_file::abstractString) 
+function handle_event(pb, c_row::Int64, c_column::Int64, area_count::Int64, arc_list::Dict, area_list::Dict, arc_file::AbstractString, area_file::AbstractString) 
 
     # Given a 2x2 pixel block `pb`, its position is (c_row, c_column)
     flag2 = pb[4] == pb[2]; flag3 = pb[4] == pb[3]
@@ -291,8 +292,8 @@ function handle_event(pb, c_row::Int64, c_column::Int64, area_count::Int64, arc_
         else
         # create node and create 2 arcs,
         # create a new area
-            arc_list[((c_row, c_column), :DirR)] = Arc([], (c_row, c_column), nothing,  area_count)
-            arc_list[((c_row, c_column), :DirD)] = Arc([], (c_row, c_column), nothing,  area_count)
+            arc_list[((c_row, c_column), :DirR)] = Arc([], (c_row, c_column), nothing,  nothing, area_count)
+            arc_list[((c_row, c_column), :DirD)] = Arc([], (c_row, c_column), nothing,  nothing, area_count)
             area_list[area_count] = Area(pb[4], [((c_row, c_column), :DirR), ((c_row, c_column), :DirD)])
 
             map((((c_row-1, c_column+1), :DirD), ((c_row-1, c_column+1), :DirRD),((c_row, c_column-1), :DirR),((c_row, c_column-1), :DirDR))) do arc
@@ -323,7 +324,7 @@ function handle_event(pb, c_row::Int64, c_column::Int64, area_count::Int64, arc_
             #   -
             #  --
             if haskey(arc_list, ((c_row, c_column-1), :DirR)) \xor haskey(arc_list, ((c_row, c_column-1), :DirDR))
-                arc=haskey(arc_list, ((c_row, c_column-1), :DirR)) ? ((c_row, c_column-1), :DirR): ((c_row, c_column-1), :DirDR) 
+                haskey(arc_list, ((c_row, c_column-1), :DirR)) ? arc=((c_row, c_column-1), :DirR) : arc=((c_row, c_column-1), :DirDR) 
 
                 push!(arc_list[arc].vertices, [c_row, c_row])
 
@@ -331,7 +332,7 @@ function handle_event(pb, c_row::Int64, c_column::Int64, area_count::Int64, arc_
                 # check with "down" dir at (c_row-1, c_column) for connection
                 # Must Have An Arc To Connect
                 @assert haskey(arc_list, ((c_row-1, c_column), :DirD)) \xor haskey(arc_list, ((c_row-1, c_column), :DirRD))
-                cnnarc = haskey(arc_list, ((c_row-1, c_column), :DirD)) ? ((c_row-1, c_column), :DirD): ((c_row-1, c_column), :DirRD)
+                haskey(arc_list, ((c_row-1, c_column), :DirD)) ? cnnarc=((c_row-1, c_column), :DirD) : cnnarc=((c_row-1, c_column), :DirRD)
                 cnnarea = arc_list[cnnarc].linkArea
 
                 area=arc_list[arc].linkArea
@@ -348,13 +349,13 @@ function handle_event(pb, c_row::Int64, c_column::Int64, area_count::Int64, arc_
             #   --
             #   **  
             @assert haskey(arc_list, ((c_row, c_column-1),:DirR)) \xor haskey(arc_list, ((c_row, c_column-1),:DirDR))
-            arc = haskey(arc_list, ((c_row, c_column-1),:DirR)) ? ((c_row, c_column-1),:DirR): ((c_row, c_column-1),:DirDR)
+            arc = haskey(arc_list, ((c_row, c_column-1),:DirR)) ? ((c_row, c_column-1),:DirR) : ((c_row, c_column-1),:DirDR)
             push!(arc_list[arc].vertices, (c_row, c_column))
 
 
             # connect w/ down at (c_row-1, c_column+1) if possible
             if haskey(arc_list, ((c_row-1, c_column+1), :DirD)) \xor haskey(arc_list, ((c_row-1, c_column+1), :DirRD))
-                cnnarc = haskey(arc_list, ((c_row-1, c_column+1), :DirD)) ? ((c_row-1, c_column+1), :DirD): ((c_row-1, c_column+1), :DirRD)
+                haskey(arc_list, ((c_row-1, c_column+1), :DirD)) ? cnnarc=((c_row-1, c_column+1), :DirD) : cnnarc=((c_row-1, c_column+1), :DirRD)
                 cnnarea = arc_list[cnnarc].linkArea
 
                 area = arc_list[arc].linkArea
@@ -372,12 +373,12 @@ function handle_event(pb, c_row::Int64, c_column::Int64, area_count::Int64, arc_
             #   -
             #   --
             @assert haskey(arc_list, ((c_row-1, c_column),:DirD)) \xor haskey(arc_list, ((c_row-1, c_column),:DirRD))
-            arc = haskey(arc_list, ((c_row-1, c_column),:DirD))? ((c_row-1, c_column),:DirD): ((c_row-1, c_column),:DirRD)
+            haskey(arc_list, ((c_row-1, c_column),:DirD)) ? arc=((c_row-1, c_column),:DirD) : arc=((c_row-1, c_column),:DirRD)
             push!(arc_list[arc].vertices, (c_row, c_column))
 
             # conect w/ down at (c_row-1, c_column+1) if possible
             if haskey(arc_list, ((c_row-1, c_column+1), :DirD)) \xor haskey(arc_list, ((c_row-1, c_column+1), :DirRD))
-                cnnarc = haskey(arc_list, ((c_row-1, c_column+1), :DirD)) ? ((c_row-1, c_column+1), :DirD): ((c_row-1, c_column+1), :DirRD)
+                haskey(arc_list, ((c_row-1, c_column+1), :DirD)) ? cnnarc=((c_row-1, c_column+1), :DirD) : cnnarc=((c_row-1, c_column+1), :DirRD)
                 cnnarea = arc_list[cnnarc].linkArea
 
                 area = arc_list[arc].linkArea
@@ -395,10 +396,10 @@ function handle_event(pb, c_row::Int64, c_column::Int64, area_count::Int64, arc_
             #   #*
             #   --
             @assert haskey(arc_list, ((c_row-1, c_column), :DirD)) \xor haskey(arc_list, ((c_row-1, c_column), :DirRD))
-            areaarc = haskey(arc_list, ((c_row-1, c_column), :DirD)) ? ((c_row-1, c_column), :DirD): ((c_row-1, c_column), :DirRD)
+            haskey(arc_list, ((c_row-1, c_column), :DirD)) ? areaarc=((c_row-1, c_column), :DirD) : areaarc=((c_row-1, c_column), :DirRD)
             area = arc_list[areaarc].linkArea
             # create new arc
-            arc_list[((c_row, c_column), :DirR)] = Arc([], (c_row, c_column), nothing,  area)         
+            arc_list[((c_row, c_column), :DirR)] = Arc([], (c_row, c_column), nothing, nothing, area) 
             push!(area_list[area].arm, ((c_row, c_column), :DirR))
 
             # connect w/ arcs if necessary 
@@ -417,7 +418,7 @@ function handle_event(pb, c_row::Int64, c_column::Int64, area_count::Int64, arc_
             #   -*
             #   -* 
             @assert haskey(arc_list, ((c_row-1, c_column), :DirD)) \xor haskey(arc_list, ((c_row-1, c_column), :DirRD))
-            arc = haskey(arc_list, ((c_row-1, c_column), :DirD)) ?  ((c_row-1, c_column), :DirD): ((c_row-1, c_column), :DirRD)
+            haskey(arc_list, ((c_row-1, c_column), :DirD)) ?  arc=((c_row-1, c_column), :DirD) : arc=((c_row-1, c_column), :DirRD)
             push!(arc_list[arc].vertices, (c_row, c_column))
 
             arc_list[((c_row, c_column), :DirD)] = arc_list[arc]
@@ -428,7 +429,7 @@ function handle_event(pb, c_row::Int64, c_column::Int64, area_count::Int64, arc_
             #   --
             #    -
             @assert haskey(arc_list, ((c_row, c_column-1), :DirR)) \xor haskey(arc_list, ((c_row, c_column-1), :DirDR))
-            arc = haskey(arc_list, ((c_row, c_column-1), :DirR)) ? ((c_row, c_column-1), :DirR): ((c_row, c_column-1), :DirDR)
+            arc = haskey(arc_list, ((c_row, c_column-1), :DirR)) ? ((c_row, c_column-1), :DirR) : ((c_row, c_column-1), :DirDR)
             push!(arc_list[arc].vertices, (c_row, c_column))
 
             arc_list[((c_row, c_column), :DirD)] = arc_list[arc]
@@ -437,10 +438,10 @@ function handle_event(pb, c_row::Int64, c_column::Int64, area_count::Int64, arc_
             #   #-
             #   *-
             @assert haskey(arc_list, ((c_row, c_column-1), :DirR)) \xor haskey(arc_list, ((c_row, c_column-1), :DirDR))
-            areaarc = haskey(arc_list, ((c_row, c_column-1), :DirR)) ? ((c_row, c_column-1), :DirR): ((c_row, c_column-1), :DirDR)
+            haskey(arc_list, ((c_row, c_column-1), :DirR)) ? areaarc=((c_row, c_column-1), :DirR) : areaarc=((c_row, c_column-1), :DirDR)
             area = arc_list[areaarc].linkArea
             # create new arc
-            arc_list[((c_row, c_column), :DirD)] = Arc([], (c_row, c_column), nothing,  area)         
+            arc_list[((c_row, c_column), :DirD)] = Arc([], (c_row, c_column), nothing, nothing, area) 
             push!(area_list[area].arm, ((c_row, c_column), :DirD))
 
             # connect w/ arcs if necessary 
@@ -467,12 +468,12 @@ function rr2v(img, arc_file, area_file)
     area_count=0
     area_list=Dict{Int, Area}()
 
-    arc_list=Dirc{Tuple{Tuple{Int64, Int64}, Symbol}, Arc}()
+    arc_list=Dict{Tuple{Tuple{Int64, Int64}, Symbol}, Arc}()
     # CAN NOT use position alone as key. not unique.
 
-    for r_row in 1:(nR-1)
-        for r_column in 1:(nC-1)
-            area_count = handle_event(pb=img[c_row:(c_row+1), c_column:(c_column+1)], 
+    for c_row in 1:(nR-1)
+        for c_column in 1:(nC-1)
+            area_count = handle_event(img[c_row:(c_row+1), c_column:(c_column+1)], 
                                       c_row, c_column, 
                                       area_count, arc_list, area_list, 
                                       arc_file, area_file)
