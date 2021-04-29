@@ -265,14 +265,8 @@ end
 
 
 
-area_count=0
-area_list=Dic{Int, Area}()
 
-arc_list=Dirc{Tuple{Tuple{Int64, Int64}, Symbol}, Arc}()
-# CAN NOT use position alone as key. not unique.
-
-#TODO: area_count where to start
-function handle_event(pb, c_row::Int64, c_column::Int64, area_count::Int64, arc_list, area_list, arc_file, area_file) 
+function handle_event(pb, c_row::Int64, c_column::Int64, area_count::Int64, arc_list::Dict, area_list::Dict, arc_file::AbstractString, area_file::abstractString) 
 
     # Given a 2x2 pixel block `pb`, its position is (c_row, c_column)
     flag2 = pb[4] == pb[2]; flag3 = pb[4] == pb[3]
@@ -470,4 +464,22 @@ function handle_event(pb, c_row::Int64, c_column::Int64, area_count::Int64, arc_
 
     end
 
+    return area_count
 end
+
+function rr2v(png, arc_file, area_file)
+
+    area_count=0
+    area_list=Dict{Int, Area}()
+
+    arc_list=Dirc{Tuple{Tuple{Int64, Int64}, Symbol}, Arc}()
+    # CAN NOT use position alone as key. not unique.
+
+    for 
+        #TODO pb, c_row, c_column
+        area_count = handle_event(pb, c_row, c_column, area_count, arc_list, area_list, arc_file, area_file)
+    end
+
+end
+
+
