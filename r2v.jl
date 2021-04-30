@@ -384,10 +384,16 @@ function handle_event(pb, c_row::Int64, c_column::Int64, area_count::Int64, arc_
             # end
 
             # update arc key
+            ## linkArc's linkArc (self)
             if arc_list[arc].linkArc != nothing
                 cnnarc = arc_list[arc].linkArc
                 arc_list[cnnarc].linkArc = ((c_row, c_column), :DirR)
             end
+            ## linkArea's arm
+            area = arc_list[arc].linkArea
+            pop!(area_list[area].arm, arc)
+            push!(area_list[area].arm, ((c_row, c_column), :DirR))
+            ## key
             arc_list[((c_row, c_column),:DirR)] = arc_list[arc]
             pop!(arc_list, arc)
 
@@ -412,10 +418,16 @@ function handle_event(pb, c_row::Int64, c_column::Int64, area_count::Int64, arc_
             #end
 
             # update arc key
+            ## linkArc's linkArc (self)
             if arc_list[arc].linkArc != nothing
                 cnnarc = arc_list[arc].linkArc
                 arc_list[cnnarc].linkArc = ((c_row, c_column), :DirR)
             end 
+            ## linkArea's arm
+            area = arc_list[arc].linkArea
+            pop!(area_list[area].arm, arc)
+            push!(area_list[area].arm, ((c_row, c_column), :DirR))
+            ## key
             arc_list[((c_row, c_column),:DirR)] = arc_list[arc]
             pop!(arc_list, arc)
 
@@ -451,10 +463,16 @@ function handle_event(pb, c_row::Int64, c_column::Int64, area_count::Int64, arc_
             area = arc_list[arc].linkArea
 
             # update arc-key
+            ## linkArc's linkArc (self)
             if arc_list[arc].linkArc != nothing
                 cnnarc = arc_list[arc].linkArc
                 arc_list[cnnarc].linkArc = ((c_row, c_column), :DirD)
             end 
+            ## linkArea's arm
+            area = arc_list[arc].linkArea
+            pop!(area_list[area].arm, arc)
+            push!(area_list[area].arm, ((c_row, c_column), :DirD))
+            ## key
             arc_list[((c_row, c_column), :DirD)] = arc_list[arc]
             pop!(arc_list, arc)
 
