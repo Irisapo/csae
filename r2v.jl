@@ -6,6 +6,12 @@ export rr2v
 # load image
 #img=load("polygon.png")
 
+import Base: pop! 
+
+function pop!(ar::Array{Tuple{Tuple{Int64,Int64},Symbol},1}, it::Tuple{Tuple{Int64,Int64},Symbol})
+    filter!(x -> x!=it, ar)
+end
+
 ########################################
 # Relationships among directions 
 ########################################
@@ -60,7 +66,7 @@ end
 ##################
 write_vertex(io::IO, vec::Tuple{Int64, Int64}, csep=' ') = print(io, vec[1], csep, vec[2])
 
-function write_arc(arc_file::AbstractString, arc::Arc, sep=",", subsep=" ") 
+function write_arc(arc_file::AbstractString, arc::Arc; sep=",", subsep=" ") 
     open(arc_file, "a+") do io
         pb = PipeBuffer()
 
@@ -109,6 +115,11 @@ end
 ##################
 # Export to files 
 ##################
+
+
+
+
+
 function node_complete(arc::T, cnnarc::T, area::T2, cnnarea::T2, arc_list::Dict, area_list::Dict, arc_file::AbstractString, area_file::AbstractString) where {T<:Tuple{Tuple{Int64, Int64}, Symbol}, T2<:Int64}
     append!(arc_list[cnnarc].vertices, reverse(arc_list[arc].vertices))
     arc_list[cnnarc].dne = arc_list[arc].start # end node 
@@ -220,7 +231,7 @@ function arc_connect(arc::T, cnnarc::T, area::T2, cnnarea::T2, arc_list::Dict, a
 end
 
 
-function node_end(node::Array{Int64, 1}, arc::Tuple{Tuple{Int64, Int64}, Symbol}, area::Int64, arc_list::Dict, area_list::Dict, arc_file::AbstractString, area_file::AbstractString)
+function node_end(node::Tuple{Int64, Int64}, arc::Tuple{Tuple{Int64, Int64}, Symbol}, area::Int64, arc_list::Dict, area_list::Dict, arc_file::AbstractString, area_file::AbstractString)
 
     arc_list[arc].dne = node 
     write_arc(arc_file, arc_list[arc], sep=",", subsep=" ") 
@@ -234,7 +245,7 @@ function node_end(node::Array{Int64, 1}, arc::Tuple{Tuple{Int64, Int64}, Symbol}
 end
 
 
-function link_flip(node::Array{Int64,1}, arc::Tuple{Tuple{Int64, Int64}, Symbol}, area::Int64, arc_list::Dict, area_list::Dict) 
+function link_flip(node::Tuple{Int64, Int64}, arc::Tuple{Tuple{Int64, Int64}, Symbol}, area::Int64, arc_list::Dict, area_list::Dict) 
     cnnarc = arc_list[arc].linkArc
 
     append!(arc_list[cnnarc].vertices, reverse(arc_list[arc].vertices))
@@ -245,7 +256,7 @@ function link_flip(node::Array{Int64,1}, arc::Tuple{Tuple{Int64, Int64}, Symbol}
 
 end
 
-function node_connect(node::Array{Int64,1}, arc::Tuple{Tuple{Int64, Int64}, Symbol}, area::Int64, arc_list::Dict, area_list::Dict, arc_file::AbstractString, area_file::AbstractString)
+function node_connect(node::Tuple{Int64, Int64}, arc::Tuple{Tuple{Int64, Int64}, Symbol}, area::Int64, arc_list::Dict, area_list::Dict, arc_file::AbstractString, area_file::AbstractString)
     # node end 
     if arc_list[arc].start != nothing
 
@@ -256,7 +267,7 @@ function node_connect(node::Array{Int64,1}, arc::Tuple{Tuple{Int64, Int64}, Symb
     # link flip
         area = arc_list[arc].linkArea
 
-        link_flip(node, arc, cnnarc, area, arc_list, area_list) 
+        link_flip(node, arc, area, arc_list, area_list) 
     end
 
 end
@@ -279,14 +290,14 @@ function handle_event(pb, c_row::Int64, c_column::Int64, area_count::Int64, arc_
             area_list[area_count] = Area(pb[4], [((c_row, c_column), :DirR), ((c_row, c_column), :DirD)])
 
             # connect arc if necessary
-            if haskey(arc_list, ((c_row-1, c_column+1), :DirD)) \xor haskey(arc_list, ((c_row-1, c_column+1), :DirRD))
+            if haskey(arc_list, ((c_row-1, c_column+1), :DirD)) ⊻ haskey(arc_list, ((c_row-1, c_column+1), :DirRD))
                 cnnarc = haskey(arc_list, ((c_row-1, c_column+1), :DirD)) ? ((c_row-1, c_column+1), :DirD) : ((c_row-1, c_column+1), :DirRD)
                 cnnarea = arc_list[cnnarc].linkArea
 
                 arc = ((c_row, c_column), :DirR)
                 area = area_count
 
-                arc_connect(arc, cnnarc, area, cnnarea, arc_list, area_list) 
+                arc_connect(arc, cnnarc, area, cnnarea, arc_list, area_list, arc_file, area_file) 
             end
 
         else
@@ -300,7 +311,7 @@ function handle_event(pb, c_row::Int64, c_column::Int64, area_count::Int64, arc_
                 if haskey(arc_list, arc)
                     
                     area = arc_list[arc].linkArea
-                    node_connect((c_row, c_column), arc, area, arc_list, area_list)
+                    node_connect((c_row, c_column), arc, area, arc_list, area_list, arc_file, area_file)
                end
             end
 
@@ -313,7 +324,7 @@ function handle_event(pb, c_row::Int64, c_column::Int64, area_count::Int64, arc_
         map((((c_row-1, c_column+1), :DirD), ((c_row-1, c_column+1), :DirRD), nothing)) do cnnarc
                 if haskey(arc_list, cnnarc)
                     cnnarea = arc_list[cnnarc].linkArc
-                    arc_connect(arc, cnnarc, area, cnnarea, arc_list, area_list) 
+                    arc_connect(arc, cnnarc, area, cnnarea, arc_list, area_list, arc_file, area_file) 
                 end
         end
 
@@ -323,7 +334,7 @@ function handle_event(pb, c_row::Int64, c_column::Int64, area_count::Int64, arc_
         if  pb[1] != pb[2]
             #   -
             #  --
-            if haskey(arc_list, ((c_row, c_column-1), :DirR)) \xor haskey(arc_list, ((c_row, c_column-1), :DirDR))
+            if haskey(arc_list, ((c_row, c_column-1), :DirR)) ⊻ haskey(arc_list, ((c_row, c_column-1), :DirDR))
                 haskey(arc_list, ((c_row, c_column-1), :DirR)) ? arc=((c_row, c_column-1), :DirR) : arc=((c_row, c_column-1), :DirDR) 
 
                 push!(arc_list[arc].vertices, [c_row, c_row])
@@ -331,14 +342,14 @@ function handle_event(pb, c_row::Int64, c_column::Int64, area_count::Int64, arc_
 
                 # check with "down" dir at (c_row-1, c_column) for connection
                 # Must Have An Arc To Connect
-                @assert haskey(arc_list, ((c_row-1, c_column), :DirD)) \xor haskey(arc_list, ((c_row-1, c_column), :DirRD))
+                @assert haskey(arc_list, ((c_row-1, c_column), :DirD)) ⊻ haskey(arc_list, ((c_row-1, c_column), :DirRD))
                 haskey(arc_list, ((c_row-1, c_column), :DirD)) ? cnnarc=((c_row-1, c_column), :DirD) : cnnarc=((c_row-1, c_column), :DirRD)
                 cnnarea = arc_list[cnnarc].linkArea
 
                 area=arc_list[arc].linkArea
 
 
-                arc_connect(arc, cnnarc, area, cnnarea, arc_list, area_list) 
+                arc_connect(arc, cnnarc, area, cnnarea, arc_list, area_list, arc_file, area_file) 
                
             end
 
@@ -348,21 +359,19 @@ function handle_event(pb, c_row::Int64, c_column::Int64, area_count::Int64, arc_
         if  pb[1] == pb[3]
             #   --
             #   **  
-            @assert haskey(arc_list, ((c_row, c_column-1),:DirR)) \xor haskey(arc_list, ((c_row, c_column-1),:DirDR))
+            @assert haskey(arc_list, ((c_row, c_column-1),:DirR)) ⊻ haskey(arc_list, ((c_row, c_column-1),:DirDR))
             arc = haskey(arc_list, ((c_row, c_column-1),:DirR)) ? ((c_row, c_column-1),:DirR) : ((c_row, c_column-1),:DirDR)
             push!(arc_list[arc].vertices, (c_row, c_column))
 
-
             # connect w/ down at (c_row-1, c_column+1) if possible
-            if haskey(arc_list, ((c_row-1, c_column+1), :DirD)) \xor haskey(arc_list, ((c_row-1, c_column+1), :DirRD))
+            if haskey(arc_list, ((c_row-1, c_column+1), :DirD)) ⊻ haskey(arc_list, ((c_row-1, c_column+1), :DirRD))
                 haskey(arc_list, ((c_row-1, c_column+1), :DirD)) ? cnnarc=((c_row-1, c_column+1), :DirD) : cnnarc=((c_row-1, c_column+1), :DirRD)
                 cnnarea = arc_list[cnnarc].linkArea
 
                 area = arc_list[arc].linkArea
                 
                 # connect scenarios
-                arc_connect(arc, cnnarc, area, cnnarea, arc_list, area_list)
-            
+                arc_connect(arc, cnnarc, area, cnnarea, arc_list, area_list, arc_file, area_file)
             else
             # update arc key
                 arc_list[((c_row, c_column),:DirR)] = arc_list[arc]
@@ -372,19 +381,19 @@ function handle_event(pb, c_row::Int64, c_column::Int64, area_count::Int64, arc_
         elseif pb[1] == pb[2]
             #   -
             #   --
-            @assert haskey(arc_list, ((c_row-1, c_column),:DirD)) \xor haskey(arc_list, ((c_row-1, c_column),:DirRD))
+            @assert haskey(arc_list, ((c_row-1, c_column),:DirD)) ⊻ haskey(arc_list, ((c_row-1, c_column),:DirRD))  (println(c_row,"-", c_column);keys(arc_list) )
             haskey(arc_list, ((c_row-1, c_column),:DirD)) ? arc=((c_row-1, c_column),:DirD) : arc=((c_row-1, c_column),:DirRD)
             push!(arc_list[arc].vertices, (c_row, c_column))
 
             # conect w/ down at (c_row-1, c_column+1) if possible
-            if haskey(arc_list, ((c_row-1, c_column+1), :DirD)) \xor haskey(arc_list, ((c_row-1, c_column+1), :DirRD))
+            if haskey(arc_list, ((c_row-1, c_column+1), :DirD)) ⊻ haskey(arc_list, ((c_row-1, c_column+1), :DirRD))
                 haskey(arc_list, ((c_row-1, c_column+1), :DirD)) ? cnnarc=((c_row-1, c_column+1), :DirD) : cnnarc=((c_row-1, c_column+1), :DirRD)
                 cnnarea = arc_list[cnnarc].linkArea
 
                 area = arc_list[arc].linkArea
 
                 # connect scenarios
-                arc_connect(arc, cnnarc, area, cnnarea, arc_list, area_list)
+                arc_connect(arc, cnnarc, area, cnnarea, arc_list, area_list, arc_file, area_file)
 
             else
             # update arc
@@ -395,7 +404,7 @@ function handle_event(pb, c_row::Int64, c_column::Int64, area_count::Int64, arc_
         else
             #   #*
             #   --
-            @assert haskey(arc_list, ((c_row-1, c_column), :DirD)) \xor haskey(arc_list, ((c_row-1, c_column), :DirRD))
+            @assert haskey(arc_list, ((c_row-1, c_column), :DirD)) ⊻ haskey(arc_list, ((c_row-1, c_column), :DirRD))
             haskey(arc_list, ((c_row-1, c_column), :DirD)) ? areaarc=((c_row-1, c_column), :DirD) : areaarc=((c_row-1, c_column), :DirRD)
             area = arc_list[areaarc].linkArea
             # create new arc
@@ -407,7 +416,7 @@ function handle_event(pb, c_row::Int64, c_column::Int64, area_count::Int64, arc_
                 if haskey(arc_list, arc) 
 
                     area = arc_list[arc].linkArea
-                    node_connect((c_row, c_column), arc, area, arc_list, area_list)
+                    node_connect((c_row, c_column), arc, area, arc_list, area_list, arc_fle, area_file)
                 end
             end
 
@@ -417,7 +426,7 @@ function handle_event(pb, c_row::Int64, c_column::Int64, area_count::Int64, arc_
         if  pb[1] == pb[2]
             #   -*
             #   -* 
-            @assert haskey(arc_list, ((c_row-1, c_column), :DirD)) \xor haskey(arc_list, ((c_row-1, c_column), :DirRD))
+            @assert haskey(arc_list, ((c_row-1, c_column), :DirD)) ⊻ haskey(arc_list, ((c_row-1, c_column), :DirRD))
             haskey(arc_list, ((c_row-1, c_column), :DirD)) ?  arc=((c_row-1, c_column), :DirD) : arc=((c_row-1, c_column), :DirRD)
             push!(arc_list[arc].vertices, (c_row, c_column))
 
@@ -428,7 +437,7 @@ function handle_event(pb, c_row::Int64, c_column::Int64, area_count::Int64, arc_
         elseif pb[1] == pb[3]
             #   --
             #    -
-            @assert haskey(arc_list, ((c_row, c_column-1), :DirR)) \xor haskey(arc_list, ((c_row, c_column-1), :DirDR))
+            @assert haskey(arc_list, ((c_row, c_column-1), :DirR)) ⊻ haskey(arc_list, ((c_row, c_column-1), :DirDR))
             arc = haskey(arc_list, ((c_row, c_column-1), :DirR)) ? ((c_row, c_column-1), :DirR) : ((c_row, c_column-1), :DirDR)
             push!(arc_list[arc].vertices, (c_row, c_column))
 
@@ -437,7 +446,7 @@ function handle_event(pb, c_row::Int64, c_column::Int64, area_count::Int64, arc_
         else
             #   #-
             #   *-
-            @assert haskey(arc_list, ((c_row, c_column-1), :DirR)) \xor haskey(arc_list, ((c_row, c_column-1), :DirDR))
+            @assert haskey(arc_list, ((c_row, c_column-1), :DirR)) ⊻ haskey(arc_list, ((c_row, c_column-1), :DirDR))
             haskey(arc_list, ((c_row, c_column-1), :DirR)) ? areaarc=((c_row, c_column-1), :DirR) : areaarc=((c_row, c_column-1), :DirDR)
             area = arc_list[areaarc].linkArea
             # create new arc
@@ -449,7 +458,7 @@ function handle_event(pb, c_row::Int64, c_column::Int64, area_count::Int64, arc_
                 if haskey(arc_list, arc) 
 
                     area = arc_list[arc].linkArea
-                    node_connect((c_row, c_column), arc, area, arc_list, area_list)
+                    node_connect((c_row, c_column), arc, area, arc_list, area_list, arc_file, area_file)
                 end
             end
 
@@ -481,7 +490,7 @@ function rr2v(img, arc_file, area_file)
     end
 
     # to check/debug they should be empty Dict 
-    return area_list, arc_list
+    println("area_list\n", area_list, "\n arc_list \n", arc_list)
 
 end
 
