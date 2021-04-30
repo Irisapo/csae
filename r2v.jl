@@ -128,6 +128,8 @@ function node_complete(arc::T, cnnarc::T, area::T2, cnnarea::T2, arc_list::Dict,
     pop!(arc_list, arc)
     pop!(arc_list, cnnarc)
 
+    pop!(area_list[area].arm, arc)
+    pop!(area_list[cnnarea].arm, cnnarc)
     if length(area_list[area].arm) == 0
         write_area(area_file, area_list, area, sep="\n", subsep=",")
         pop!(area_list, area)
@@ -141,7 +143,7 @@ function node_complete(arc::T, cnnarc::T, area::T2, cnnarea::T2, arc_list::Dict,
 end
 
 function link_complete(arc::T, cnnarc::T, area::T2, cnnarea::T2, arc_list::Dict, area_list::Dict, arc_file::AbstractString, area_file::AbstractString) where {T<:Tuple{Tuple{Int64, Int64}, Symbol}, T2<:Int64}
-    pop!(area_list[area].arm, area);  pop!(area_list[cnnarea].arm, cnnarea)
+    pop!(area_list[area].arm, arc);  pop!(area_list[cnnarea].arm, cnnarc)
     if length(area_list[area].arm) == 0
         write_area(area_file, area_list, area, sep="\n", subsep=",")
         pop!(area_list, area)
