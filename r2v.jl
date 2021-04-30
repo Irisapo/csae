@@ -98,7 +98,7 @@ function write_arc(arc_file::AbstractString, arc::Arc; sep=",", subsep=" ")
 end
 
 
-function write_area(area_file::AbstractString, area_list::Dict, area_name::Int64, sep="\n", subsep=",")
+function write_area(area_file::AbstractString, area_list::Dict, area_name::Int64; sep="\n", subsep=",")
     open(area_file, "a+") do io
 
         pb = PipeBuffer()
@@ -121,7 +121,7 @@ end
 function node_complete(arc::T, cnnarc::T, area::T2, cnnarea::T2, arc_list::Dict, area_list::Dict, arc_file::AbstractString, area_file::AbstractString) where {T<:Tuple{Tuple{Int64, Int64}, Symbol}, T2<:Int64}
     append!(arc_list[cnnarc].vertices, reverse(arc_list[arc].vertices))
     arc_list[cnnarc].dne = arc_list[arc].start # end node 
-    write_arc(arc_file, arc_list[annarc], sep=",", subsep=" ") 
+    write_arc(arc_file, arc_list[cnnarc], sep=",", subsep=" ") 
 
     pop!(arc_list, arc)
     pop!(arc_list, cnnarc)
@@ -150,7 +150,7 @@ function link_complete(arc::T, cnnarc::T, area::T2, cnnarea::T2, arc_list::Dict,
     #No need to check cnnarea b/c it is the same as area
    
     append!(arc_list[cnnarc].vertices, reverse(arc_list[arc].vertices))
-    write_arc(arc_file, arc_list[annarc], sep=",", subsep=" ") 
+    write_arc(arc_file, arc_list[cnnarc], sep=",", subsep=" ") 
     pop!(arc_list, arc);  pop!(arc_list, cnnarc)
 
 end
@@ -198,7 +198,7 @@ function node_complete(arc::T, cnnarc::T, area::T2, cnnarea::T2, arc_list::Dict,
     pop!(arc_list, arc)
     pop!(area_list[area].arm, arc)
 
-    write_arc(arc_file, arc_list[annarc], sep=",", subsep=" ") 
+    write_arc(arc_file, arc_list[cnnarc], sep=",", subsep=" ") 
     pop!(arc_list, cnnarc)
     pop!(area_list[cnnarea].arm, cnnarc)
 
@@ -487,6 +487,17 @@ function handle_event(pb, c_row::Int64, c_column::Int64, area_count::Int64, arc_
             arc = haskey(arc_list, ((c_row, c_column-1), :DirR)) ? ((c_row, c_column-1), :DirR) : ((c_row, c_column-1), :DirDR)
             push!(arc_list[arc].vertices, (c_row, c_column))
 
+            # update arc-key
+            ## linkArc's linkArc (self)
+            if arc_list[arc].linkArc != nothing
+                cnnarc = arc_list[arc].linkArc
+                arc_list[cnnarc].linkArc = ((c_row, c_column), :DirD)
+            end
+            ## linkArea's arm
+            area = arc_list[arc].linkArea
+            pop!(area_list[area].arm, arc)
+            push!(area_list[area].arm, ((c_row, c_column), :DirD))
+            ## key
             arc_list[((c_row, c_column), :DirD)] = arc_list[arc]
             pop!(arc_list, arc)
         else
@@ -525,6 +536,11 @@ function rr2v(img, arc_file, area_file)
 
     arc_list=Dict{Tuple{Tuple{Int64, Int64}, Symbol}, Arc}()
     # CAN NOT use position alone as key. not unique.
+    
+    # write first row in area_file
+    open(area_file, "w") do f
+        print(f, "area, color\n")
+    end
 
     for c_row in 1:(nR-1)
         for c_column in 1:(nC-1)
