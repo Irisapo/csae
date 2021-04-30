@@ -208,7 +208,7 @@ function node_complete(arc::T, cnnarc::T, area::T2, cnnarea::T2, arc_list::Dict,
     end
     if length(area_list[cnnarea].arm) == 0
         write_area(area_file, area_list, cnnarea, sep="\n", subsep=",")
-        pop!(area_liat, cnnarea)
+        pop!(area_list, cnnarea)
     end
 
 end
@@ -446,7 +446,7 @@ function handle_event(pb, c_row::Int64, c_column::Int64, area_count::Int64, arc_
                 if haskey(arc_list, arc) 
 
                     area = arc_list[arc].linkArea
-                    node_connect((c_row, c_column), arc, area, arc_list, area_list, arc_fle, area_file)
+                    node_connect((c_row, c_column), arc, area, arc_list, area_list, arc_file, area_file)
                 end
             end
 
