@@ -186,6 +186,8 @@ function node_incomplete(node_arc::T, link_arc::T, node_area::T2, link_area::T2,
             arc_list[arm].linkArea = node_area
         end
     end      
+
+    #TODO: write link_area into area_file
    
 end
 
@@ -258,9 +260,12 @@ function link_flip(node::Tuple{Int64, Int64}, arc::Tuple{Tuple{Int64, Int64}, Sy
 
     append!(arc_list[cnnarc].vertices, reverse(arc_list[arc].vertices))
     arc_list[cnnarc].start = node 
+    # remove linkArc
+    arc_list[cnnarc].linkArc = nothing
 
     pop!(arc_list, arc)
     pop!(area_list[area].arm, arc)
+
 
 end
 
