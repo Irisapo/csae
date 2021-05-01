@@ -258,11 +258,15 @@ end
 function link_flip(node::Tuple{Int64, Int64}, arc::Tuple{Tuple{Int64, Int64}, Symbol}, area::Int64, arc_list::Dict, area_list::Dict) 
     cnnarc = arc_list[arc].linkArc
 
-    append!(arc_list[cnnarc].vertices, reverse(arc_list[arc].vertices))
-    arc_list[cnnarc].start = node 
+    reverse!(arc_list[arc].vertices)
+    pop!(arc_list[arc].vertices) # remove last vertex to avoid repetition
+    append!(arc_list[arc].vertices, arc_list[cnnarc].vertices)
+    arc_list[arc].start = node 
     # remove linkArc
-    arc_list[cnnarc].linkArc = nothing
+    arc_list[arc].linkArc = nothing
 
+    # change key & remove cnnarc
+    arc_list[cnnarc] = arc_list[arc]
     pop!(arc_list, arc)
     pop!(area_list[area].arm, arc)
 
@@ -375,7 +379,6 @@ function handle_event(pb, c_row::Int64, c_column::Int64, area_count::Int64, arc_
             #   **  
             @assert haskey(arc_list, ((c_row, c_column-1),:DirR)) ⊻ haskey(arc_list, ((c_row, c_column-1),:DirDR))
             arc = haskey(arc_list, ((c_row, c_column-1),:DirR)) ? ((c_row, c_column-1),:DirR) : ((c_row, c_column-1),:DirDR)
-            push!(arc_list[arc].vertices, (c_row, c_column))
 
             # It's not possible to connect
             # connect w/ down at (c_row-1, c_column+1) if possible
@@ -463,7 +466,6 @@ function handle_event(pb, c_row::Int64, c_column::Int64, area_count::Int64, arc_
             #   -* 
             @assert haskey(arc_list, ((c_row-1, c_column), :DirD)) ⊻ haskey(arc_list, ((c_row-1, c_column), :DirRD))
             haskey(arc_list, ((c_row-1, c_column), :DirD)) ?  arc=((c_row-1, c_column), :DirD) : arc=((c_row-1, c_column), :DirRD)
-            push!(arc_list[arc].vertices, (c_row, c_column))
 
             area = arc_list[arc].linkArea
 
