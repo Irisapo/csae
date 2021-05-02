@@ -2,10 +2,6 @@ module R2V
 
 export rr2v
 
-#using FileIO, Images
-# load image
-#img=load("polygon.png")
-
 import Base: pop! 
 
 function pop!(ar::Array{Tuple{Tuple{Int64,Int64},Symbol},1}, it::Tuple{Tuple{Int64,Int64},Symbol})
@@ -70,7 +66,7 @@ function write_arc(arc_file::AbstractString, arc::Arc; sep=",", subsep=" ")
     open(arc_file, "a+") do io
         pb = PipeBuffer()
 
-        if arc.start != nothing
+        if arc.start !== nothing
             write_vertex(pb, arc.start, subsep)
             print(pb, sep)
         end
@@ -86,7 +82,7 @@ function write_arc(arc_file::AbstractString, arc::Arc; sep=",", subsep=" ")
             (bytesavailable(pb) > (16*1024)) && write(io, take!(pb))  # just in case
         end
 
-        if arc.dne == nothing
+        if arc.dne === nothing
             print(pb, "\n")
         else
             lastr == sep ? (print(pb, sep); write_vertex(pb, arc.dne, subsep); print(pb, "\n")) : (write_vertex(pb, arc.dne, subsep); print(pb, "\n")) 
@@ -217,8 +213,8 @@ end
 
 function arc_connect(arc::T, cnnarc::T, area::T2, cnnarea::T2, arc_list::Dict, area_list::Dict, arc_file::AbstractString, area_file::AbstractString) where {T<:Tuple{Tuple{Int64, Int64}, Symbol}, T2<:Int64}
 
-    if arc_list[arc].linkArc != nothing
-        if arc_list[cnnarc].linkArc != nothing
+    if arc_list[arc].linkArc !== nothing
+        if arc_list[cnnarc].linkArc !== nothing
             ## linked complete
             if arc_list[cnnarc].linkArc == arc && arc_list[arc].linkArc == cnnarc
                 link_complete(arc, cnnarc, area, cnnarea, arc_list, area_list, arc_file, area_file)
@@ -229,7 +225,7 @@ function arc_connect(arc::T, cnnarc::T, area::T2, cnnarea::T2, arc_list::Dict, a
             node_incomplete(cnnarc, arc, cnnarea, area, arc_list, arc_area)
         end
     else
-        if arc_list[cnnarc].linkArc != nothing
+        if arc_list[cnnarc].linkArc !== nothing
             # arc has start node
             ## linked incomplete  (one arc with link, one arc with node)
             node_incomplete(arc, cnnarc, area, cnnarea, arc_list, arc_area)
@@ -275,12 +271,12 @@ end
 
 function node_connect(node::Tuple{Int64, Int64}, arc::Tuple{Tuple{Int64, Int64}, Symbol}, area::Int64, arc_list::Dict, area_list::Dict, arc_file::AbstractString, area_file::AbstractString)
     # node end 
-    if arc_list[arc].start != nothing
+    if arc_list[arc].start !== nothing
 
         area = arc_list[arc].linkArea
         node_end(node, arc, area, arc_list, area_list, arc_file, area_file)
 
-    elseif arc_list[arc].linkArc != nothing
+    elseif arc_list[arc].linkArc !== nothing
     # link flip
         area = arc_list[arc].linkArea
 
@@ -393,7 +389,7 @@ function handle_event(pb, c_row::Int64, c_column::Int64, area_count::Int64, arc_
 
             # update arc key
             ## linkArc's linkArc (self)
-            if arc_list[arc].linkArc != nothing
+            if arc_list[arc].linkArc !== nothing
                 cnnarc = arc_list[arc].linkArc
                 arc_list[cnnarc].linkArc = ((c_row, c_column), :DirR)
             end
@@ -427,7 +423,7 @@ function handle_event(pb, c_row::Int64, c_column::Int64, area_count::Int64, arc_
 
             # update arc key
             ## linkArc's linkArc (self)
-            if arc_list[arc].linkArc != nothing
+            if arc_list[arc].linkArc !== nothing
                 cnnarc = arc_list[arc].linkArc
                 arc_list[cnnarc].linkArc = ((c_row, c_column), :DirR)
             end 
@@ -471,7 +467,7 @@ function handle_event(pb, c_row::Int64, c_column::Int64, area_count::Int64, arc_
 
             # update arc-key
             ## linkArc's linkArc (self)
-            if arc_list[arc].linkArc != nothing
+            if arc_list[arc].linkArc !== nothing
                 cnnarc = arc_list[arc].linkArc
                 arc_list[cnnarc].linkArc = ((c_row, c_column), :DirD)
             end 
@@ -496,7 +492,7 @@ function handle_event(pb, c_row::Int64, c_column::Int64, area_count::Int64, arc_
 
             # update arc-key
             ## linkArc's linkArc (self)
-            if arc_list[arc].linkArc != nothing
+            if arc_list[arc].linkArc !== nothing
                 cnnarc = arc_list[arc].linkArc
                 arc_list[cnnarc].linkArc = ((c_row, c_column), :DirD)
             end
