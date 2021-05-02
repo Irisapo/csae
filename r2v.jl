@@ -130,7 +130,6 @@ function node_complete(arc::T, cnnarc::T, area::T2, cnnarea::T2, arc_list::Dict,
         pop!(area_list, area)
     end
 
-    #No need to check cnnarea b/c it is the same as area
     if length(area_list[cnnarea].arm) == 0
         write_area(area_file, area_list, cnnarea, sep="\n", subsep=",")
         pop!(area_list, cnnarea)
