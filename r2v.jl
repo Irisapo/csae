@@ -115,7 +115,8 @@ end
 
 
 function node_complete(arc::T, cnnarc::T, area::T2, cnnarea::T2, arc_list::Dict, area_list::Dict, arc_file::AbstractString, area_file::AbstractString) where {T<:Tuple{Tuple{Int64, Int64}, Symbol}, T2<:Int64}
-    append!(arc_list[cnnarc].vertices, reverse(arc_list[arc].vertices))
+    reverse!(arc_list[cnnarc].vertices)
+    append!(arc_list[cnnarc].vertices, arc_list[arc].vertices)
     arc_list[cnnarc].dne = arc_list[arc].start # end node 
     write_arc(arc_file, arc_list[cnnarc], sep=",", subsep=" ") 
 
@@ -181,33 +182,47 @@ function node_incomplete(node_arc::T, link_arc::T, node_area::T2, link_area::T2,
         for arm in area_list[link_area].arm
             arc_list[arm].linkArea = node_area
         end
+        write_area(area_file, area_list, link_area, sep="\n", subsep=",")
+        pop!(area_list, link_area)
     end      
-
-    #TODO: write link_area into area_file
    
 end
 
 
-function node_complete(arc::T, cnnarc::T, area::T2, cnnarea::T2, arc_list::Dict, area_list::Dict, arc_file::AbstractString, area_file::AbstractString) where {T<:Tuple{Tuple{Int64, Int64}, Symbol}, T2<:Int64}
+function link_incomplete(arc::T, cnnarc::T, area::T2, cnnarea::T2, arc_list::Dict, area_list::Dict, arc_file::AbstractString, area_file::AbstractString) where {T<:Tuple{Tuple{Int64, Int64}, Symbol}, T2<:Int64}
     
-    append!(arc_list[cnnarc].vertices, reverse(arc_list[arc].vertices))
-    arc_list[cnnarc].dne = arc_list[arc].start
+    push!(arc_list[cnnarc].vertices, arc_list[arc].vertices[end])
 
+    arc_larc = arc_list[arc].linkArc
+    cnnarc_larc = arc_list[cnnarc].linkArc
+
+    # flip and merge linked-arcs each
+    reverse!(arc_list[arc].vertices)
+    append!(arc_list[arc].vertices, arc_list[arc_larc].vertices)
+
+    reverse!(arc_list[cnnarc].vertices)
+    append!(arc_list[cnnarc].vertices, arc_list[cnnarc_larc].vertices)
+
+
+    # link & remove old (linkArc)s
+    arc_list[arc_larc] = arc_list[arc]
+    arc_list[cnnarc_larc] = arc_list[cnnarc]
+    arc_list[arc_larc].linkArc = cnnarc_larc
+    arc_list[cnnarc_larc].linkArc = arc_larc
     pop!(arc_list, arc)
-    pop!(area_list[area].arm, arc)
-
-    write_arc(arc_file, arc_list[cnnarc], sep=",", subsep=" ") 
     pop!(arc_list, cnnarc)
+
+    pop!(area_list[area].arm, arc)
     pop!(area_list[cnnarea].arm, cnnarc)
 
-    if length(area_list[area].arm) == 0
-        write_area(area_file, area_list, area, sep="\n", subsep=",")
-        pop!(area_list, area)
-    end
-    if length(area_list[cnnarea].arm) == 0
+    # merge areas if necessary
+    if area != cnnarea
+        for arm in area_list[cnnarea].arm
+            arc_list[arm].linkArea = area
+        end
         write_area(area_file, area_list, cnnarea, sep="\n", subsep=",")
         pop!(area_list, cnnarea)
-    end
+    end  
 
 end
 
@@ -218,6 +233,9 @@ function arc_connect(arc::T, cnnarc::T, area::T2, cnnarea::T2, arc_list::Dict, a
             ## linked complete
             if arc_list[cnnarc].linkArc == arc && arc_list[arc].linkArc == cnnarc
                 link_complete(arc, cnnarc, area, cnnarea, arc_list, area_list, arc_file, area_file)
+            else 
+            ## linked incomplete
+                link_incomplete(arc, cnnarc, area, cnnarea, arc_list, area_list, arc_file, area_file)
             end
         else 
             # cnnarc has start node
@@ -561,3 +579,16 @@ end
 
 
 end
+
+
+
+
+img3 = fill(0, (7,8))
+img3[2, 5:7] .= 1
+img3[3, [5,7]] .= 1
+img3[4, 2:5] .= 1; img3[4, 7] = 1
+img3[5, [2,7]] .= 1
+img3[6, 2:7] .= 1
+
+
+R2V.rr2v(img3, "arc.csv", "area.csv")
