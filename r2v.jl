@@ -115,7 +115,7 @@ end
 
 
 function node_complete(arc::T, cnnarc::T, area::T2, cnnarea::T2, arc_list::Dict, area_list::Dict, arc_file::AbstractString, area_file::AbstractString) where {T<:Tuple{Tuple{Int64, Int64}, Symbol}, T2<:Int64}
-    reverse!(arc_list[cnnarc].vertices)
+    reverse!(arc_list[arc].vertices)
     append!(arc_list[cnnarc].vertices, arc_list[arc].vertices)
     arc_list[cnnarc].dne = arc_list[arc].start # end node 
     write_arc(arc_file, arc_list[cnnarc], sep=",", subsep=" ") 
