@@ -198,9 +198,11 @@ function link_incomplete(arc::T, cnnarc::T, area::T2, cnnarea::T2, arc_list::Dic
 
     # flip and merge linked-arcs each
     reverse!(arc_list[arc].vertices)
+    pop!(arc_list[arc].vertices)
     append!(arc_list[arc].vertices, arc_list[arc_larc].vertices)
 
     reverse!(arc_list[cnnarc].vertices)
+    pop!(arc_list[cnnarc].vertices)
     append!(arc_list[cnnarc].vertices, arc_list[cnnarc_larc].vertices)
 
 
