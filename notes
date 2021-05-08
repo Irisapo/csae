@@ -1,0 +1,2 @@
+There is no way to pass an expression saved in a var to macro, 
+because macro only deals with literals.
