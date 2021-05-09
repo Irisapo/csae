@@ -3,7 +3,7 @@
 #include <random> // get  uniform rv
 #include "boost/math/special_functions/bessel.hpp"  // use cyl_bessel_i
 
-float log_pm_unnorm (float a, float nu, float m)
+float logp_bes_unnorm (float a, float nu, float m)
 {
     float logpm_unnorm;
 
@@ -21,7 +21,7 @@ float p_bes(float a, float nu, float m)
 
     norm_bes = boost::math::cyl_bessel_i(nu, a);
 
-    logpm_unnorm = log_pm_unnorm(a, nu, m);
+    logpm_unnorm = logp_bes_unnorm(a, nu, m);
     pm = std::exp(logpm_unnorm) / norm_bes;
 
     return pm;
