@@ -5,6 +5,7 @@
 
 float logp_rg1 (float lambda, float a, float b, float x)
 {
+    // x >0, x Real
     // (Poi)lambda > 0; b > 0; a > 0 
     // a+lambda shape in gamma, b scale
     
