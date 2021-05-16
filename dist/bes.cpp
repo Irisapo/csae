@@ -31,11 +31,11 @@ float rv_bes(float a, float nu, std::mt19937& gen)
 {
     //return integer as float
     float m;
-    m = std::round( (std::sqrt(a*a+nu*nu) - nu)/2. );
+    m = std::round( (std::sqrt(a*a+nu*nu) - nu) * .5 );
 
-    float pm, prob_mNx;
+    float pm, pmx;
     pm = p_bes(a, nu, m);
-    float w = 1. + pm/2.;
+    float w = 1. + pm * .5;
 
     float u1, u2;
     float x, y, j;
@@ -49,17 +49,17 @@ float rv_bes(float a, float nu, std::mt19937& gen)
         u1 = RV_u(gen);
         u2 = RV_u(gen);
         s = RV_b(gen);
-        y = (u1 < w/(1+w)) ? w*RV_u(gen)/pm : (w+RV_e(gen))/pm ;
+        y = (u1 < w/(1.+w)) ? w*RV_u(gen)/pm : (w+RV_e(gen))/pm ;
         x = std::round(y);
         if (s == false) {
             x *= -1;
         }
-        prob_mNx = p_bes(a, nu, m+x);
-        j = std::log(w);
-        if ( (u2-pm*y)<0 ) {
-            j += u2-pm*y;
+        pmx = p_bes(a, nu, m+x);
+        j = std::log(u2);
+        if ( (w-pm*y)<0 ) {
+            j += w-pm*y;
         }
-    } while( j > std::log(prob_mNx)-std::log(pm) );
+    } while( j > std::log(pmx)-std::log(pm) );
 
     return m+x;
 }
