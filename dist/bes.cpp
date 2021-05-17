@@ -66,7 +66,7 @@ float rv_bes(float a, float nu, std::mt19937& gen)
 
 
 // maybe change to std::vector<int>
-std::vector<float> rv_bes ( float a,  float nu,  int n, unsigned seed=1111)
+std::vector<float> rv_bes(float a, float nu, int n, unsigned seed=1111)
 {
     // nu > -1, a > 0 
     std::vector<float> rv(n);
